@@ -41,7 +41,6 @@ message 'Lottery: ' + cItem skip
         'Quantity: ' + string(iQty) skip
         'Total Price: ' + string(dTotal, "zz,zz9") + 'Bath'.
 
-
 /*Customer Payment*/
 repeat:
     update
