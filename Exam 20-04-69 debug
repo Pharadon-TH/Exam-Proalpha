@@ -12,7 +12,7 @@ repeat:
     update
         cItem label 'Product Category (A,B,C,D,E,F)'
         iQty label 'Quantity purchased'.
-
+        
     assign cItem = upper(cItem).
 
     case cItem:
@@ -27,7 +27,7 @@ repeat:
            undo, retry.
          end.
     end case.
-
+    
     if iQty <= 0 then do:
         message 'Please specify the quantity'.
         undo, retry.
@@ -39,23 +39,21 @@ end.
 dTotal = dPrice * iQty.
 message 'Lottery: ' + cItem skip
         'Quantity: ' + string(iQty) skip
-        'Total Price: ' + string(dTotal, "zz,zz9.99") + 'Bath'.
+        'Total Price: ' + string(dTotal, "zz,zz9") + 'Bath'.
 
 
 /*Customer Payment*/
 repeat:
     update
-        dPayment label 'Amount received (Bath)'.
-
-    if dPayment < dTotal then
+        dPayment label 'Amount received (Bath)'. 
+         
+    if dPayment < dTotal then do:
        message 'The amount is insufficient.'.
     end.
     leave.
 end.
 
-/*Calculate*/
+/*Calculate*/       
 dChange = dPayment - dTotal.
-message  'Recive: ' + string(
-         'All change: ' + string(dChange, "zz,zz9.99") + 'Bath'.
-
-
+message 'Recive: ' + string(dPayment) skip
+        'All change: ' + string(dChange, "zz,zz9.99") + 'Bath'.
