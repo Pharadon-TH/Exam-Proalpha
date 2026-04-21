@@ -399,7 +399,7 @@ define variable cHolidays  as character no-undo initial "04/05/2026,13/05/2026" 
 
 /*dd/mm/yy*/
 update
- iInputdays label 'Input Days' with frame f1.
+  iInputdays label 'Input Days' with frame f1.
 
 
 /* KTG */
@@ -410,25 +410,25 @@ dATG = today.
 iCount = 0.
 
 repeat while iCount < iInputdays:
-    dATG = dATG + 1.
+  dATG = dATG + 1.
     if weekday(dATG) <> 1 and
-       weekday(dATG) <> 7 and
-       lookup(string(day(dATG),'99') + '/' +
-              string(month(dATG),'99') + '/' +
-              string(year(dATG),'9999'), cHolidays) = 0
+      weekday(dATG) <> 7 and
+        lookup(string(day(dATG),'99') + '/' +
+          string(month(dATG),'99') + '/' +
+          string(year(dATG),'9999'), cHolidays) = 0
     then iCount = iCount + 1.
 end.
 
-/* Display Result */
+/*Display Result*/
 message
-    "Current Date: " string(day(today),'99') + '/' +
-                     string(month(today),'99') + '/' +
-                     string(year(today),'9999') skip(1)
+  "Current Date: " string(day(today),'99') + '/' +
+                   string(month(today),'99') + '/' +
+                   string(year(today),'9999') skip(1)
                      
-    "KTG - " string(day(dKTG),'99') + '/' +
-             string(month(dKTG),'99') + '/' +
-             string(year(dKTG),'9999') skip
+  "KTG - " string(day(dKTG),'99') + '/' +
+           string(month(dKTG),'99') + '/' +
+           string(year(dKTG),'9999') skip
              
-    "ATG - " string(day(dATG),'99') + '/'  +
-             string(month(dATG),'99') + '/' +
-             string(year(dATG),'9999').
+  "ATG - " string(day(dATG),'99') + '/'  +
+           string(month(dATG),'99') + '/' +
+           string(year(dATG),'9999').
