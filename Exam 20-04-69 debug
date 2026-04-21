@@ -126,3 +126,57 @@ for each tCounter by tCounter.tChar:
 end.
 
 message 'Result:' + '~n' + cResult.
+
+/*-----------------------------------------------------------------------------*/
+
+/*Problem - 05*/
+
+def var iNum1 as integer no-undo.
+def var iNum2 as integer no-undo.
+def var iSum as integer no-undo.
+def var iDiff as integer no-undo.
+def var iProd as integer no-undo.
+def var iQout as decimal format '-zz,zz9.99' no-undo.
+def var cResult as character no-undo.
+
+update
+    iNum1 label 'Num1'
+    iNum2 label 'Num2'
+    with fram fInput title 'Calculater' view-as dialog-box.
+    
+run CalcNumbers (
+    input iNum1,
+    input iNum2,
+    output iSum,
+    output iDiff,
+    output iProd,
+    output iQout
+).
+
+cResult = 'Value:' + string(iNum1) + ' and ' + string(iNum2) + '~n~n' + 
+          'Sum (+): ' + string(iSum) + '~n' +
+          'Diff (-): ' + string(iDiff) + '~n' +
+          'Prod (x): ' + string(iProd) + '~n' +
+          'Qout (/): ' + string(iQout, '-zz,zz9.99').
+message cResult. 
+
+procedure CalcNumbers:
+    def input parameter pNum1 as integer no-undo.
+    def input parameter pNum2 as integer no-undo.
+    def output parameter pSum as integer no-undo. 
+    def output parameter pDiff as integer no-undo. 
+    def output parameter pProd as integer no-undo.
+    def output parameter pQout as decimal no-undo.  
+    
+    pSum = pNum1 + pNum2.
+    pDiff = pNum1 - pNum2.
+    pProd = pNum1 * pNum2.
+    
+    if pNum2 = 0 then do: 
+        pQout = 0.
+    end.
+    
+    else do:
+        pQout = pNum1 / pNum2.
+    end.
+ end procedure.
