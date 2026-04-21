@@ -306,3 +306,83 @@ cMonthName = entry(MONTH(tDate), 'January,February,March,April,May,June,July,Aug
 /*Display*/
 cOutput = cDayName + ' ' + string(DAY(tDate)) + ' ' + cMonthName + ' ' + string(YEAR(tDate)).
 message 'INPUT : ' + cInput + '~n~n' + 'OUTPUT: ' + cOutput.
+
+/*-----------------------------------------------------------------------------*/
+
+/*Problem - 08*/
+
+define variable iNums    as integer   no-undo extent 5.
+define variable i        as integer   no-undo.
+define variable j        as integer   no-undo.
+define variable iTemp    as integer   no-undo.
+define variable iRandom  as integer   no-undo.
+define variable lExists  as logical   no-undo.
+define variable cRawList as character no-undo.
+define variable iMin     as integer   no-undo.
+define variable iMax     as integer   no-undo.
+define variable cAsc     as character no-undo.
+define variable cDesc    as character no-undo.
+define variable iRevIdx  as integer   no-undo.
+
+/*Random 5 Value*/
+i = 1.
+repeat
+  while i <= 5:
+    iRandom = RANDOM(1, 10).
+    lExists = false.
+
+    /*Value Check*/
+    do j = 1 to i - 1 :
+      if iNums[j] = iRandom then
+      do:
+        lExists = true.
+        leave.
+      end. /*do:*/
+    end. /*do j*/
+
+    if not lExists then
+    do:
+      iNums[i] = iRandom.
+      cRawList = cRawList + (if cRawList = '' then '' else ',') + string(iNums[i]).
+      i = i + 1.
+    end. /*if*/
+
+end. /*repeat while*/
+
+/*Find Min and Max*/
+iMin = iNums[1].
+iMax = iNums[1].
+
+do i = 2 to 5:
+  if iNums[i] < iMin then
+    iMin = iNums[i].
+  if iNums[i] > iMax then
+    iMax = iNums[i].
+end. /*do*/
+
+/*In order Min to Max (Bubble Sort)*/
+do i = 1 to 4:
+  do j = i + 1 to 5:
+    if iNums[i] > iNums[j] then
+    do:
+      iTemp    = iNums[i].
+      iNums[i] = iNums[j].
+      iNums[j] = iTemp.
+    end. /*do*/
+  end. /*do j*/
+end. /*do i*/
+
+/*Asc - Desc*/
+do i = 1 to 5:
+  cAsc = cAsc + (if cAsc = '' then '' else ',') + string(iNums[i]).
+  iRevIdx = 6 - i.
+  cDesc = cDesc + (if cDesc = '' then '' else ',') + string(iNums[iRevIdx]).
+end. /*do*/
+
+/*Display Result*/
+message
+  'random set: ' cRawList skip
+  'min: ' iMin skip
+  'max: ' iMax skip.
+  'ascending order: ' cAsc skip
+  'descending order: ' cDesc.
