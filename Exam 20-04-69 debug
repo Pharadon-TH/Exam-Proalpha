@@ -87,3 +87,42 @@ do i = 1 to num-entries(cInput):
 end.
    cResult = replace(cResult, 'e', 'T').
 message cResult.
+
+/*-----------------------------------------------------------------------------*/
+
+/*Problem - 04*/
+
+define variable cInput as character initial 'this is a message to be count' no-undo.
+define variable i as integer no-undo.
+define variable cChar as character no-undo.
+define variable cResult as character initial '' no-undo.
+
+define temp-table tCounter no-undo
+    field tChar as character
+    field tTotal as integer 
+    index idxChar is primary unique tChar.
+
+do i = 1 to length(cInput):
+    cChar = substring(cInput, i, 1).
+
+    if cChar = ' ' then next.
+    
+    find first tCounter where tCounter.tChar = cChar no-error.
+    
+    if available tCounter then do:
+         tCounter.tTotal = tCounter.tTotal + 1.
+    end.
+    
+    else do:
+        create tCounter.
+        assign 
+            tCounter.tChar = cChar 
+            tCounter.tTotal = 1.
+    end.
+end.
+
+for each tCounter by tCounter.tChar:
+    cResult = cResult + tCounter.tChar + ' = ' + string(tCounter.tTotal) + '~n'.
+end.
+
+message 'Result:' + '~n' + cResult.
