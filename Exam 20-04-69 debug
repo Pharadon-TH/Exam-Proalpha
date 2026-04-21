@@ -8,65 +8,84 @@ define variable dTotal     as decimal   no-undo.
 define variable dPayment   as decimal   no-undo.
 define variable dChange    as decimal   no-undo.
 
-/*UI box Customer*/
 repeat:
-    update
-        cItem label 'Product Category (A,B,C,D,E,F)'
-        iQty label 'Quantity purchased'.
-    assign cItem = upper(cItem).
+
+  update
+    cItem label 'Product Category (A,B,C,D,E,F)'
+    iQty label 'Quantity purchased'.
+
+    assign
+      cItem = upper(cItem)
+      cItem = upper(cItem)
+      cItem = upper(cItem)
+      cItem = upper(cItem)
+      .
 
     case cItem:
-         when 'A':U then dPrice = 10.
-         when 'B':U then dPrice = 41.
-         when 'C':U then dPrice = 32.
-         when 'D':U then dPrice = 77.
-         when 'E':U then dPrice = 105.
-         when 'F':U then dPrice = 8.
-         otherwise do:
-           message 'No Item'.
-           undo, retry.
-         end.
-    end case.
     
-    if iQty <= 0 then do:
+      when 'A':U then
+        dPrice = 10.
+      when 'B':U then
+        dPrice = 41.
+      when 'C':U then
+        dPrice = 32.
+      when 'D':U then
+        dPrice = 77.
+      when 'E':U then
+        dPrice = 105.
+      when 'F':U then
+        dPrice = 8.
+      otherwise
+      do:
+        message 'No Item'.
+        undo, retry.
+      end. /* otherwise */
+    end case.
+
+    if iQty <= 0 then
+    do:
         message 'Please specify the quantity'.
         undo, retry.
-    end.
+    end. /* if iQty <= 0 then */
+    
     leave.
-end.
+end. /* repeat: */
 
 /*Total Price*/
 dTotal = dPrice * iQty.
+
 message 'Lottery: ' + cItem skip
         'Quantity: ' + string(iQty) skip
-        'Total Price: ' + string(dTotal, "zz,zz9") + 'Bath'.
+        'Total Price:' + string(dTotal, "zzz,zz9") + ' Bath'.
+
 
 /*Customer Payment*/
 repeat:
-    update
-        dPayment label 'Amount received (Bath)'. 
-         
-    if dPayment < dTotal then do:
-       message 'The amount is insufficient.'.
-    end.
-    leave.
-end.
+  update
+    dPayment label 'Amount received (Bath)'.
 
-/*Calculate*/       
+  if dPayment < dTotal then
+    message 'The amount is insufficient.'.
+    leave.
+end. /* repeat: */
+
+/*Calculate*/
 dChange = dPayment - dTotal.
 message 'Recive: ' + string(dPayment) skip
-        'All change: ' + string(dChange, "zz,zz9.99") + 'Bath'.
+        'All change: ' + string(dChange, "zzz,zz9") + ' Bath'.
+
+
 
 /*-----------------------------------------------------------------------------*/
 
 /*Problem - 02*/
 
-define variable cInput as character initial 'This is a message to convert' no-undo.
-define variable cOutput as character initial '' no-undo.
-define variable i as integer no-undo.
+define variable cInput  as character no-undo initial 'This is a message to convert'.
+define variable cOutput as character no-undo.
+define variable i       as integer   no-undo.
 
 do i = length(cInput) to 1 by -1:
-   cOutput = cOutput + substring(cInput, i, 1).
+  cOutput = cOutput + substring(cInput, i, 1).
 end.
 
 message cOutput.
@@ -75,108 +94,122 @@ message cOutput.
 
 /*Problem - 03*/
 
-define variable cInput as character initial 'artikel, kunde, lieferchien, rechnung' no-undo.
-define variable cResult as character initial '' no-undo.
-define variable cTemp as character no-undo.
-define variable i as integer no-undo.
+define variable cInput  as character no-undo initial 'artikel,kunde,lieferchien,rechnung'.
+define variable cResult as character no-undo.
+define variable cTemp   as character no-undo.
+define variable i       as integer   no-undo.
 
 do i = 1 to num-entries(cInput):
-   cTemp = trim(entry(i, cInput)).
-   cTemp = substring(cTemp, 1 , 3) + 'PROALPHA'.
-   cResult = cResult + cTemp.
+  cTemp = entry(i, cInput).
+  cTemp = substring(cTemp, 1 , 3) + 'PROALPHA'.
+  cResult = cResult + cTemp.
 end.
-   cResult = replace(cResult, 'e', 'T').
+
+cResult = replace(cResult, 'e', 'T').
 message cResult.
 
 /*-----------------------------------------------------------------------------*/
 
 /*Problem - 04*/
 
-define variable cInput as character initial 'this is a message to be count' no-undo.
-define variable i as integer no-undo.
-define variable cChar as character no-undo.
-define variable cResult as character initial '' no-undo.
+def var cInput        as character no-undo initial 'this is a message to be count'.
+def var cCharList     as character no-undo.
+def var cCountList    as character no-undo.
+def var cChar         as character no-undo.
+def var i             as integer   no-undo.
+def var iPos          as integer   no-undo.
+def var iCurrentCount as integer   no-undo.
+def var cResult       as character no-undo.
 
-define temp-table tCounter no-undo
-    field tChar as character
-    field tTotal as integer 
-    index idxChar is primary unique tChar.
-
+/*Logic Count*/
 do i = 1 to length(cInput):
-    cChar = substring(cInput, i, 1).
+  cChar = substring(cInput, i, 1).
 
-    if cChar = ' ' then next.
-    
-    find first tCounter where tCounter.tChar = cChar no-error.
-    
-    if available tCounter then do:
-         tCounter.tTotal = tCounter.tTotal + 1.
-    end.
-    
-    else do:
-        create tCounter.
-        assign 
-            tCounter.tChar = cChar 
-            tCounter.tTotal = 1.
-    end.
-end.
+  if cChar = ' ' then next.
 
-for each tCounter by tCounter.tChar:
-    cResult = cResult + tCounter.tChar + ' = ' + string(tCounter.tTotal) + '~n'.
-end.
+  iPos = lookup(cChar, cCharList).
 
-message 'Result:' + '~n' + cResult.
+  if iPos = 0 then
+  do:
+    if cCharList = '' then
+    do:
+      cCharList = cChar.
+      cCountList = '1'.
+    end. /*if cCharList*/
+
+    else
+    do:
+      cCharList = cCharList + ',' + cChar.
+      cCountList = cCountList + ',' + '1'.
+    end. /*else*/
+  end. /*if iPos*/
+
+  else
+  do:
+    iCurrentCount = integer(entry(iPos, cCountList)) + 1.
+    entry(iPos, cCountList) = string(iCurrentCount).
+  end. /*else*/
+
+end. /*do*/
+
+/*Format Display*/
+do i = 1 to num-entries(cCharList):
+  cResult = cResult + entry(i, cCharList) + ' = ' +
+                      entry(i, cCountList) + '~n'.
+end. /*do*/
+
+/*Result*/
+message 'Result: ' + '~n' + cResult.
 
 /*-----------------------------------------------------------------------------*/
 
 /*Problem - 05*/
 
-def var iNum1 as integer no-undo.
-def var iNum2 as integer no-undo.
-def var iSum as integer no-undo.
-def var iDiff as integer no-undo.
-def var iProd as integer no-undo.
-def var iQout as decimal format '-zz,zz9.99' no-undo.
+def var iNum1   as integer   no-undo.
+def var iNum2   as integer   no-undo.
+def var iSum    as integer   no-undo.
+def var iDiff   as integer   no-undo.
+def var iProd   as integer   no-undo.
+def var iQout   as decimal   no-undo format '-zz,zz9.99'.
 def var cResult as character no-undo.
 
 update
-    iNum1 label 'Num1'
-    iNum2 label 'Num2'
-    with fram fInput title 'Calculater' view-as dialog-box.
-    
+  iNum1 label 'Num1'
+  iNum2 label 'Num2'
+  with fram fInput title 'Calculater' view-as dialog-box.
+
 run CalcNumbers (
-    input iNum1,
-    input iNum2,
-    output iSum,
-    output iDiff,
-    output iProd,
-    output iQout
+  input iNum1,
+  input iNum2,
+  output iSum,
+  output iDiff,
+  output iProd,
+  output iQout
 ).
 
-cResult = 'Value:' + string(iNum1) + ' and ' + string(iNum2) + '~n~n' + 
+cResult = 'Value: ' + string(iNum1) + ' and ' + string(iNum2) + '~n~n' +
           'Sum (+): ' + string(iSum) + '~n' +
           'Diff (-): ' + string(iDiff) + '~n' +
           'Prod (x): ' + string(iProd) + '~n' +
           'Qout (/): ' + string(iQout, '-zz,zz9.99').
-message cResult. 
+message cResult.
 
 procedure CalcNumbers:
-    def input parameter pNum1 as integer no-undo.
-    def input parameter pNum2 as integer no-undo.
-    def output parameter pSum as integer no-undo. 
-    def output parameter pDiff as integer no-undo. 
-    def output parameter pProd as integer no-undo.
-    def output parameter pQout as decimal no-undo.  
-    
-    pSum = pNum1 + pNum2.
-    pDiff = pNum1 - pNum2.
-    pProd = pNum1 * pNum2.
-    
-    if pNum2 = 0 then do: 
-        pQout = 0.
-    end.
-    
-    else do:
-        pQout = pNum1 / pNum2.
-    end.
- end procedure.
+  def input  parameter pNum1 as integer no-undo.
+  def input  parameter pNum2 as integer no-undo.
+  def output parameter pSum  as integer no-undo.
+  def output parameter pDiff as integer no-undo.
+  def output parameter pProd as integer no-undo.
+  def output parameter pQout as decimal no-undo.
+
+  pSum = pNum1 + pNum2.
+  pDiff = pNum1 - pNum2.
+  pProd = pNum1 * pNum2.
+
+  if pNum2 = 0 then
+    pQout = 0.
+
+  else
+    pQout = pNum1 / pNum2.
+
+end procedure.
