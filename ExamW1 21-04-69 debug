@@ -411,7 +411,7 @@ repeat while iCount < iInputdays:
        weekday(dATG) <> 7 and
        lookup(string(day(dATG),"99") + "/" +
               string(month(dATG),"99") + "/" +
-              string(year(dATG),"9999"), cholidays) = 0
+              string(year(dATG),"9999"), cHolidays) = 0
     then iCount = iCount + 1.
 end.
 
