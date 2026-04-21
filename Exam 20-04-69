@@ -12,66 +12,6 @@ repeat:
     update
         cItem label 'Product Category (A,B,C,D,E,F)'
         iQty label 'Quantity purchased'.
-        
-    assign cItem = upper(cItem).
-
-    case cItem:
-         when 'A':U then dPrice = 10.
-         when 'B':U then dPrice = 41.
-         when 'C':U then dPrice = 32.
-         when 'D':U then dPrice = 77.
-         when 'E':U then dPrice = 105.
-         when 'F':U then dPrice = 8.
-         otherwise do:
-           message 'No Item'.
-           undo, retry.
-         end.
-    end case.
-    
-    if iQty <= 0 then do:
-        message 'Please specify the quantity'.
-        undo, retry.
-    end.
-    leave.
-end.
-
-/*Total Price*/
-dTotal = dPrice * iQty.
-message 'Lottery: ' + cItem skip
-        'Quantity: ' + string(iQty) skip
-        'Total Price: ' + string(dTotal, "zz,zz9") + 'Bath'.
-
-
-/*Customer Payment*/
-repeat:
-    update
-        dPayment label 'Amount received (Bath)'. 
-         
-    if dPayment < dTotal then do:
-       message 'The amount is insufficient.'.
-    end.
-    leave.
-end.
-
-/*Calculate*/       
-dChange = dPayment - dTotal.
-message 'Recive: ' + string(dPayment) skip
-        'All change: ' + string(dChange, "zz,zz9.99") + 'Bath'.
-
-/*Problem - 01*/
-
-/*variable type*/
-define variable cItem      as character no-undo.
-define variable iQty       as integer   no-undo.
-define variable dPrice     as decimal   no-undo.
-define variable dTotal     as decimal   no-undo.
-define variable dPayment   as decimal   no-undo.
-define variable dChange    as decimal   no-undo.
-
-repeat:
-    update
-        cItem label 'Product Category (A,B,C,D,E,F)'
-        iQty label 'Quantity purchased'.
 
     assign cItem = upper(cItem).
 
