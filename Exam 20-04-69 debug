@@ -57,3 +57,16 @@ end.
 dChange = dPayment - dTotal.
 message 'Recive: ' + string(dPayment) skip
         'All change: ' + string(dChange, "zz,zz9.99") + 'Bath'.
+
+
+/*Problem - 02*/
+
+define variable cInput as character initial 'This is a message to convert' no-undo.
+define variable cOutput as character initial '' no-undo.
+define variable i as integer no-undo.
+
+do i = length(cInput) to 1 by -1:
+   cOutput = cOutput + substring(cInput, i, 1).
+end.
+
+message cOutput.
