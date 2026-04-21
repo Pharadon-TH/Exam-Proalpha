@@ -58,6 +58,7 @@ dChange = dPayment - dTotal.
 message 'Recive: ' + string(dPayment) skip
         'All change: ' + string(dChange, "zz,zz9.99") + 'Bath'.
 
+/*-----------------------------------------------------------------------------*/
 
 /*Problem - 02*/
 
