@@ -8,35 +8,55 @@ define variable dTotal     as decimal   no-undo.
 define variable dPayment   as decimal   no-undo.
 define variable dChange    as decimal   no-undo.
 
-/*Price Item*/
-case cItem:
-     when 'A':U then dPrice = 10.
-     when 'B':U then dPrice = 41.
-     when 'C':U then dPrice = 32.
-     when 'D':U then dPrice = 77.
-     when 'E':U then dPrice = 105.
-     when 'F':U then dPrice = 8.
-     do:
-       message 'No Item'.
-     end.
-end case.
+repeat:
+    update
+        cItem label 'Product Category (A,B,C,D,E,F)'
+        iQty label 'Quantity purchased'.
+        
+    assign cItem = upper(cItem).
+
+    case cItem:
+         when 'A':U then dPrice = 10.
+         when 'B':U then dPrice = 41.
+         when 'C':U then dPrice = 32.
+         when 'D':U then dPrice = 77.
+         when 'E':U then dPrice = 105.
+         when 'F':U then dPrice = 8.
+         otherwise do:
+           message 'No Item'.
+           undo, retry.
+         end.
+    end case.
+    
+    if iQty <= 0 then do:
+        message 'Please specify the quantity'.
+        undo, retry.
+    end.
+    leave.
+end.
 
 /*Total Price*/
 dTotal = dPrice * iQty.
-message 'Total Price: ':U + string(dTotal, "zz,zz9.99":U) + 'Bath':U.
+message 'Lottery: ' + cItem skip
+        'Quantity: ' + string(iQty) skip
+        'Total Price: ' + string(dTotal, "zz,zz9") + 'Bath'.
+
 
 /*Customer Payment*/
-update dPayment.
+repeat:
+    update
+        dPayment label 'Amount received (Bath)'. 
+         
+    if dPayment < dTotal then do:
+       message 'The amount is insufficient.'.
+    end.
+    leave.
+end.
 
-/*Calculate*/
-if dPayment < dTotal then
-   message 'The amount is insufficient.':U.
-   
-else
- do:
-    dChange = dTotal - dPayment
-    message 'All change: ':U + string(dChange, "zz,zz9.99":U)+ 'Bath':U.
- end.
+/*Calculate*/       
+dChange = dPayment - dTotal.
+message 'Recive: ' + string(dPayment) skip
+        'All change: ' + string(dChange, "zz,zz9.99") + 'Bath'.
  
 /*-----------------------------------------------------------------------------*/
  
