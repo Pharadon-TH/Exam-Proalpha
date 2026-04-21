@@ -71,3 +71,20 @@ do i = length(cInput) to 1 by -1:
 end.
 
 message cOutput.
+
+/*-----------------------------------------------------------------------------*/
+
+/*Problem - 03*/
+
+define variable cInput as character initial 'artikel, kunde, lieferchien, rechnung' no-undo.
+define variable cResult as character initial '' no-undo.
+define variable cTemp as character no-undo.
+define variable i as integer no-undo.
+
+do i = 1 to num-entries(cInput):
+   cTemp = trim(entry(i, cInput)).
+   cTemp = substring(cTemp, 1 , 3) + 'PROALPHA'.
+   cResult = cResult + cTemp.
+end.
+   cResult = replace(cResult, 'e', 'T').
+message cResult.
