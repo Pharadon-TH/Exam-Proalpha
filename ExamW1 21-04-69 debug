@@ -386,3 +386,45 @@ message
   'max: ' iMax skip.
   'ascending order: ' cAsc skip
   'descending order: ' cDesc.
+
+/*-----------------------------------------------------------------------------*/
+
+/*Problem - 09*/
+
+define variable iInputDays as integer   no-undo.
+define variable dKTG       as date      no-undo.
+define variable dATG       as date      no-undo.
+define variable iCount     as integer   no-undo.
+define variable cHolidays  as character no-undo initial "04/05/2026,13/05/2026" .
+
+update
+ iInputdays label "Input Days" with frame f1.
+
+dKTG = today + iInputdays.
+
+dATG = today.
+iCount = 0.
+
+repeat while iCount < iInputdays:
+    dATG = dATG + 1.
+    if weekday(dATG) <> 1 and
+       weekday(dATG) <> 7 and
+       lookup(string(day(dATG),"99") + "/" +
+              string(month(dATG),"99") + "/" +
+              string(year(dATG),"9999"), cholidays) = 0
+    then iCount = iCount + 1.
+end.
+
+
+message
+    "Current Date: " string(day(today),"99") + "/" +
+                     string(month(today),"99") + "/" +
+                     string(year(today),"9999") skip(1)
+                     
+    "KTG - " string(day(dKTG),"99") + "/" +
+             string(month(dKTG),"99") + "/" +
+             string(year(dKTG),"9999") skip
+             
+    "ATG - " string(day(dATG),"99") + "/" +
+             string(month(dATG),"99") + "/" +
+             string(year(dATG),"9999").
