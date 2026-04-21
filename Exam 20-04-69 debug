@@ -8,11 +8,11 @@ define variable dTotal     as decimal   no-undo.
 define variable dPayment   as decimal   no-undo.
 define variable dChange    as decimal   no-undo.
 
+/*UI box Customer*/
 repeat:
     update
         cItem label 'Product Category (A,B,C,D,E,F)'
         iQty label 'Quantity purchased'.
-        
     assign cItem = upper(cItem).
 
     case cItem:
