@@ -213,3 +213,46 @@ procedure CalcNumbers:
     pQout = pNum1 / pNum2.
 
 end procedure.
+
+/*-----------------------------------------------------------------------------*/
+
+/*Problem - 06*/
+
+function GetGrade returns character(input pScore as integer) forward.
+
+/*Variable*/
+def var cInput  as character no-undo initial '75 55 40 85 65'.
+def var cOutput as character no-undo.
+def var i       as integer   no-undo.
+def var iScore  as integer   no-undo.
+
+/*Grade Logic*/
+do i = 1 to num-entries(cInput, ' '):
+  iScore  = integer(entry(i, cInput, ' ')).
+  cOutput = cOutput + string(iScore) + ' = ' + GetGrade(iScore) + '~n'.
+end. /*do*/
+
+/*Display Result*/
+message 'Output: ' + '~n' + cOutput 
+        view-as alert-box information title 'Grade'.
+        
+/*Main Function*/
+function GetGrade returns character(input pScore as integer):
+
+  if pScore >= 80 then
+    return 'A'.
+    
+  else if pScore >= 70 then
+    return 'B'.
+    
+  else if pScore >= 60 then
+    return 'C'.
+    
+  else if pScore >= 50 then
+    return 'D'.
+    
+  else 
+    return 'E'.
+    
+end function.
+  
