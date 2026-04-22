@@ -423,26 +423,25 @@ message
 /*Problem - 10*/
 
 define variable iNum  as integer   no-undo.
-define variable cUnit as character no-undo extent 19 init ["one","two","three","four",
-                                                           "five","six","seven","eight",
-                                                           "nine","ten","eleven","twelve",
-                                                           "thirteen","fourteen","fifteen",
-                                                           "sixteen","seventeen","eighteen",
-                                                           "nineteen"].
-define variable cTens as character no-undo extent 9 init ["","twenty","thirty","forty",
-                                                          "fifty","sixty","seventy",
-                                                          "eighty","ninety"].
+define variable cUnit as character no-undo extent 19 init ["one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"].
+define variable cTens as character no-undo extent 9 init ["","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"].
 define variable cRes  as character no-undo.
 define variable iHun  as integer   no-undo.
 define variable iRem  as integer   no-undo.
 
 /*get value*/
 update
-  iNum label 'input (0-999)' with frame f1.
+  iNum label 'Input (0-999)' with frame f1.
   
 if iNum = 0 then
   cRes = 'zero'.
 
+if iNum < 0 or iNum > 999 then
+  do:
+    message 'Input value (0-999)'.
+    undo, retry. 
+  end.
+  
 else
   do:
     /*Hundreds of categories*/
@@ -451,7 +450,7 @@ else
     
     /*Manage hundreds*/
     if iHun > 0 then
-      cRes = cUnit[iHun] + 'hundred'.
+      cRes = cUnit[iHun] + ' hundred'.
 
     /*Manage tens and units*/
     if iRem > 0 then
@@ -472,3 +471,4 @@ else
   end. /* else */
   
 message cRes.
+
