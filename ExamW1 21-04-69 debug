@@ -432,3 +432,58 @@ message
   "ATG - " string(day(dATG),'99') + '/'  +
            string(month(dATG),'99') + '/' +
            string(year(dATG),'9999').
+
+/*-----------------------------------------------------------------------------*/
+
+/*Problem - 10*/
+
+define variable iNum  as integer   no-undo.
+define variable cUnit as character no-undo extent 19 init ["one","two","three","four",
+                                                           "five","six","seven","eight",
+                                                           "nine","ten","eleven","twelve",
+                                                           "thirteen","fourteen","fifteen",
+                                                           "sixteen","seventeen","eighteen",
+                                                           "nineteen"].
+define variable cTens as character no-undo extent 9 init ["","twenty","thirty","forty",
+                                                          "fifty","sixty","seventy",
+                                                          "eighty","ninety"].
+define variable cRes  as character no-undo.
+define variable iHun  as integer   no-undo.
+define variable iRem  as integer   no-undo.
+
+/*get value*/
+update
+  iNum label 'input (0-999)' with frame f1.
+  
+if iNum = 0 then
+  cRes = 'zero'.
+
+else
+  do:
+    /*Hundreds of categories*/
+    iHun = integer(truncate(iNum / 100, 0)).
+    iRem = iNum modulo 100.
+    
+    /*Manage hundreds*/
+    if iHun > 0 then
+      cRes = cUnit[iHun] + 'hundred'.
+
+    /*Manage tens and units*/
+    if iRem > 0 then
+      do:
+        if cRes <> '' then
+          cRes = cRes + ' '.
+      
+        if iRem < 20 then
+          cRes = cRes + cUnit[iRem].
+
+        else
+          do:
+            cRes = cRes + cTens[integer(truncate(iRem / 10, 0))].
+            if (iRem modulo 10) > 0 then
+              cRes = cRes + ' ' + cUnit[iRem modulo 10].
+          end. /* else */
+      end. /* if */
+  end. /* else */
+  
+message cRes.
