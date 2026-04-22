@@ -383,7 +383,7 @@ end. /*do*/
 message
   'random set: ' cRawList skip
   'min: ' iMin skip
-  'max: ' iMax skip.
+  'max: ' iMax skip
   'ascending order: ' cAsc skip
   'descending order: ' cDesc.
 
