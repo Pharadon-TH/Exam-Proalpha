@@ -483,7 +483,6 @@ define variable cIndex as character init '12345687' no-undo.
 define variable iIdx   as integer   no-undo.
 define variable cFinal as character no-undo.
 
-
 /*spaciel*/
 cTemp = '!#$%&()*+,-./:;<=>?@[]^_{}~`|'.
 cPool[1] = substring(cTemp, random(1, length(cTemp)), 1).
