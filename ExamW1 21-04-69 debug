@@ -527,3 +527,55 @@ end. /*do*/
 
 message 'Output: ' cFinal.
 
+/*-----------------------------------------------------------------------------*/
+
+/*Problem - 12*/
+
+define variable cInput   as character no-undo format 'x(50)'.
+define variable cOutput  as character no-undo.
+define variable cCurrent as character no-undo.
+define variable cNext    as character no-undo.
+define variable i        as integer   no-undo.
+define variable n        as integer   no-undo.
+
+update
+  cInput with frame f1 title 'Input String (e.g. a4v1tw5)'.
+assign 
+  cOutput = ''
+  i = 1.
+
+repeat
+  while i <= length(cInput):
+    cCurrent = substring(cInput, i, 1).
+
+    /*Skip if you find a number*/
+    if cCurrent >= "0" and cCurrent <= "9" then 
+    do:
+      i = i + 1.
+      next.
+    end.
+    
+    /*Look at the next one*/
+    if i < length(cInput) then
+      cNext = substring(cInput, i + 1, 1).
+
+    else
+      cNext = ''.
+  
+    if cNext >= "0" and cNext <= "9" then 
+    do:
+      do n = 1 to integer(cNext):
+        cOutput = cOutput + cCurrent.
+      end.
+      i = i + 2. 
+    end.
+    
+    else do:
+      cOutput = cOutput + cCurrent.
+      i = i + 1.
+    end.
+    
+end. /* repeat */
+
+message 'Input: ' cInput skip
+        'Output: ' cOutput.
