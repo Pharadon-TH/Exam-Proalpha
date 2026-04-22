@@ -260,52 +260,37 @@ end function.
 
 /*Problem - 07*/
 
-define variable cInput     as character no-undo format 'x(10)'.
-define variable cDayStr    as character no-undo.
-define variable cMonthStr  as character no-undo.
-define variable cYearStr   as character no-undo.
-define variable tDate      as date      no-undo.
-define variable cDayName   as character no-undo.
-define variable cMonthName as character no-undo.
-define variable cOutput    as character no-undo.
+define variable cInput  as character format 'x(10)' no-undo.
+define variable tDate   as date      no-undo.
+define variable cOutput as character no-undo.
+define variable cWeek   as character no-undo.
+define variable cMonth  as character no-undo.
 
-/*Get Value Loop*/
-repeat:
+update
+  cInput label 'Please specify the date (dd/mm/yy).'
+  with frame fInput title 'Date Converter'
+  view-as dialog-box.
 
-  update
-    cInput label 'Please specify the date (dd/mm/yy).'
-    with frame fInput title 'Date Converter'
-    view-as dialog-box.
-    
-  if num-entries(cInput, '/') <> 3 then
+assign
+  cWeek  = 'Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday' 
+  cMonth = 'January,February,March,April,May,June,July,August,September,October,November,December'
+  .
+
+tDate = date(cInput).
+
+if tDate = ? then 
   do:
     message 'The format is incorrect; it needs a separator, such as (01/08/25)'
     view-as alert-box error title 'error'.
     undo, retry.
-  end. /*if*/
-  
-  leave.
-  
-end. /*repeat:*/
+  end.
 
-/*Logic*/
-assign
-  cDayStr   = entry(1, cInput, '/')
-  cMonthStr = entry(2, cInput, '/')
-  cYearStr  = entry(3, cInput, '/').
-  
-if length(cYearStr) = 2 then
-  cYearStr = '20' + cYearStr.
+cOutput = entry(weekday(tDate), cWeek) + ' ' + string(day(tDate)) + ' ' + 
+          entry(month(tDate), cMonth) + ' ' + string(year(tDate)).       
 
-tDate = DATE(integer(cDayStr), integer(cMonthStr), integer(cYearStr)).
-
-/*Find Day*/
-cDayName   = entry(WEEKDAY(tDate), 'Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday').
-cMonthName = entry(MONTH(tDate), 'January,February,March,April,May,June,July,August,September,October,November,December').
-
-/*Display*/
-cOutput = cDayName + ' ' + string(DAY(tDate)) + ' ' + cMonthName + ' ' + string(YEAR(tDate)).
-message 'INPUT : ' + cInput + '~n~n' + 'OUTPUT: ' + cOutput.
+message 
+ 'Input: ' cInput skip
+ 'Output: ' cOutput.
 
 /*-----------------------------------------------------------------------------*/
 
