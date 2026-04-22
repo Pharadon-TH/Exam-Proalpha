@@ -80,7 +80,7 @@ message 'Recive: ' + string(dPayment) skip
 
 /*Problem - 02*/
 
-define variable cInput  as character no-undo initial 'This is a message to convert'.
+define variable cInput  as character initial 'This is a message to convert' no-undo.
 define variable cOutput as character no-undo.
 define variable i       as integer   no-undo.
 
@@ -94,7 +94,7 @@ message cOutput.
 
 /*Problem - 03*/
 
-define variable cInput  as character no-undo initial 'artikel,kunde,lieferchien,rechnung'.
+define variable cInput  as character initial 'artikel,kunde,lieferchien,rechnung' no-undo.
 define variable cResult as character no-undo.
 define variable cTemp   as character no-undo.
 define variable i       as integer   no-undo.
@@ -112,7 +112,7 @@ message cResult.
 
 /*Problem - 04*/
 
-def var cInput        as character no-undo initial 'this is a message to be count'.
+def var cInput        as character initial 'this is a message to be count' no-undo.
 def var cCharList     as character no-undo.
 def var cCountList    as character no-undo.
 def var cChar         as character no-undo.
@@ -170,7 +170,7 @@ def var iNum2   as integer   no-undo.
 def var iSum    as integer   no-undo.
 def var iDiff   as integer   no-undo.
 def var iProd   as integer   no-undo.
-def var iQout   as decimal   no-undo format '-zz,zz9.99'.
+def var iQout   as decimal   format '-zz,zz9.99' no-undo.
 def var cResult as character no-undo.
 
 update
@@ -221,7 +221,7 @@ end procedure.
 function GetGrade returns character(input pScore as integer) forward.
 
 /*Variable*/
-def var cInput  as character no-undo initial '75 55 40 85 65'.
+def var cInput  as character initial '75 55 40 85 65' no-undo initial.
 def var cOutput as character no-undo.
 def var i       as integer   no-undo.
 def var iScore  as integer   no-undo.
@@ -296,7 +296,7 @@ message
 
 /*Problem - 08*/
 
-define variable iNums    as integer   no-undo extent 5.
+define variable iNums    as integer   extent 5 no-undo.
 define variable i        as integer   no-undo.
 define variable j        as integer   no-undo.
 define variable iTemp    as integer   no-undo.
@@ -380,7 +380,7 @@ define variable iInputDays as integer   no-undo.
 define variable dKTG       as date      no-undo.
 define variable dATG       as date      no-undo.
 define variable iCount     as integer   no-undo.
-define variable cHolidays  as character no-undo initial "04/05/2026,13/05/2026" .
+define variable cHolidays  as character initial "04/05/2026,13/05/2026" no-undo.
 
 /*dd/mm/yy*/
 update
