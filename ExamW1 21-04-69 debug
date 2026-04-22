@@ -386,7 +386,6 @@ define variable cHolidays  as character no-undo initial "04/05/2026,13/05/2026" 
 update
   iInputdays label 'Input Days' with frame f1.
 
-
 /* KTG */
 dKTG = today + iInputdays.
 
