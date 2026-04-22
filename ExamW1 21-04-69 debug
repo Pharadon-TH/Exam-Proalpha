@@ -471,3 +471,60 @@ else
   
 message cRes.
 
+/*-----------------------------------------------------------------------------*/
+
+/*Problem - 11*/
+
+define variable cPool  as character extent 8 no-undo.
+define variable cTemp  as character no-undo.
+define variable i      as integer   no-undo.
+define variable iPos   as integer   no-undo.
+define variable cIndex as character init '12345687' no-undo.
+define variable iIdx   as integer   no-undo.
+define variable cFinal as character no-undo.
+
+
+/*spaciel*/
+cTemp = '!#$%&()*+,-./:;<=>?@[]^_{}~`|'.
+cPool[1] = substring(cTemp, random(1, length(cTemp)), 1).
+
+/*upper*/
+cTemp = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.
+cPool[2] = substring(cTemp, random(1, length(cTemp)), 1).
+
+/*lower*/
+cTemp = 'abcdefghijklmnopqrstuvwxyz'.
+do i = 3 to 6:
+  cPool[i] = substring(cTemp, random(1, length(cTemp)), 1).
+end. /*do*/
+
+/*Numbers*/
+cTemp = '0123456789'.
+do i = 7 to 8:
+  cPool[i] = substring(cTemp, random(1, length(cTemp)), 1).
+end. /*do*/
+
+/*random*/
+do i = 1 to 8:
+  if length(cIndex) <= 1 then
+    iPos = 1.
+
+  else
+    iPos = random(1, length(cIndex)).
+
+  /*random positions*/
+  iIdx = integer(substring(cIndex, iPos, 1)).
+  
+  /*Assemble letters*/
+  cFinal = cFinal + cPool[iIdx].
+
+  /*Cut used ones*/
+  if length(cIndex) > 1 then
+    cIndex = substring(cIndex , 1, iPos - 1) + substring(cIndex , iPos + 1).
+  else
+    cIndex = ''.
+
+end. /*do*/
+
+message 'Output: ' cFinal.
+
