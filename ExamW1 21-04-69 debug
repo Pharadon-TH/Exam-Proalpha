@@ -279,7 +279,7 @@ repeat:
     
   if num-entries(cInput, '/') <> 3 then
   do:
-    message 'The format is incorrect; it needs a separator, such as (01/08/25)
+    message 'The format is incorrect; it needs a separator, such as (01/08/25)'
     view-as alert-box error title 'error'.
     undo, retry.
   end. /*if*/
