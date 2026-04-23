@@ -479,7 +479,7 @@ define variable cPool  as character extent 8 no-undo.
 define variable cTemp  as character no-undo.
 define variable i      as integer   no-undo.
 define variable iPos   as integer   no-undo.
-define variable cIndex as character init '12345687' no-undo.
+define variable cIndex as character init '12345678' no-undo.
 define variable iIdx   as integer   no-undo.
 define variable cFinal as character no-undo.
 
