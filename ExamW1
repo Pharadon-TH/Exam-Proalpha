@@ -687,6 +687,7 @@ do i = 1 to num-entries(cData, ';'):
     if cChar = '-' then
       iDashCount = iDashCount + 1.
 
+    /* Found other characters other than a-z 0-9 and - */
     else if not ((cChar >= 'A' and cChar <= 'Z') or (cChar >= '0' and cChar <= '9')) then
     do:
       lIsValid = false.
