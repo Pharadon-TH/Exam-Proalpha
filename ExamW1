@@ -589,7 +589,7 @@ define variable cDayEntry     as character no-undo.
 define variable i             as integer   no-undo.
 define variable cCurrentDate  as character no-undo.
 define variable cCurrentSales as character no-undo.
-define variable dCurrentSales as decimal   no-undo.
+define variable dSales        as decimal   no-undo.
 define variable dTotal        as decimal   format '-zzz,zzz,zz9.99' no-undo.
 define variable dMax          as decimal   no-undo.
 define variable dMin          as decimal   no-undo.
@@ -609,27 +609,27 @@ do i = 1 to num-entries(cData, ';'):
   /* Separated into dates and sales */
   cCurrentDate  = entry(1, cDayEntry, ',').
   cCurrentSales = entry(2, cDayEntry, ',').
-  dCurrentSales = decimal(replace(cCurrentSales, '.', ',')).
+  dSales        = decimal(replace(cCurrentSales, '.', ',')).
 
   /* Sum */
-  dTotal = dTotal + dCurrentSales.
+  dTotal = dTotal + dSales.
 
   /* Max value */
-  if dCurrentSales > dMax then
+  if dSales > dMax then
   assign
-    dMax = dCurrentSales
+    dMax = dSales
     cMaxDays = cCurrentDate + ' ' + cCurrentSales.
 
-  else if dCurrentSales = dMax then
+  else if dSales = dMax then
     cMaxDays = cMaxDays + '~n' + cCurrentDate + ' ' + cCurrentSales.
 
   /* Min value */
-  if dCurrentSales < dMin then
+  if dSales < dMin then
   assign
-    dMin = dCurrentSales
+    dMin = dSales
     cMinDays = cCurrentDate + ' ' + cCurrentSales .
 
-  else if dCurrentSales = dMin then
+  else if dSales = dMin then
     cMinDays = cMinDays + '~n' + cCurrentDate + ' ' + cCurrentSales.
 end. /* do i */
 
