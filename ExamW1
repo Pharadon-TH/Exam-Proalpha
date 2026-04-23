@@ -636,12 +636,10 @@ do i = 1 to num-entries(cData, ';'):
 
 end. /* do i */
 
-
 /* AVG */
 dAvg = dTotal / num-entries(cData, ';').
 
 /* Display */
-
 message
   '1.Total sales: ' dTotal ' Bath' skip(1)
   '2.Avg sales: ' dAvg ' Bath' skip(1)
