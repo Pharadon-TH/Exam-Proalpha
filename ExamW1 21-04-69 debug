@@ -590,50 +590,50 @@ define variable i             as integer   no-undo.
 define variable cCurrentDate  as character no-undo.
 define variable cCurrentSales as character no-undo.
 define variable dCurrentSales as decimal   no-undo.
-define variable dTotal        as decimal   no-undo.
+define variable dTotal        as decimal   format '-zzz,zz9.99' no-undo.
 define variable dMax          as decimal   no-undo.
 define variable dMin          as decimal   no-undo.
 define variable cMaxDays      as character no-undo.
 define variable cMinDays      as character no-undo.
-define variable dAvg          as decimal   no-undo.
+define variable dAvg          as decimal   format '-zzz,zz9.99' no-undo.
 
 assign
   cData = '01.06.2025,15250.75;02.06.2025,12300.00;03.06.2025,17800.00;' +
           '04.06.2025,9900.50;05.06.2025,0;06.06.2025,10500.25;' +
           '07.06.2025,8600.00;08.06.2025,12000.00;09.06.2025,15700.75;10.06.2025,0'.
-          
+
 /* day count loop */
 do i = 1 to num-entries(cData, ';'):
 
   /* extract daily data */
   cDayEntry = entry(i, cData, ';').
-  
+
   /* Separated into dates and sales */
   cCurrentDate  = entry(1, cDayEntry, ',').
   cCurrentSales = entry(2, cDayEntry, ',').
   dCurrentSales = decimal(cCurrentSales).
-  
+
   /* Sum */
   dTotal = dTotal + dCurrentSales.
-  
+
   /* Max value */
   if dCurrentSales > dMax then
   assign
     dMax = dCurrentSales
     cMaxDays = cCurrentDate + ' ' + cCurrentSales.
-    
+
   else if dCurrentSales = dMax then
     cMaxDays = cMaxDays + '~n' + cCurrentDate + ' ' + cCurrentSales.
-    
+
   /* Min value */
   if dCurrentSales < dMin then
   assign
     dMin = dCurrentSales
     cMinDays = cCurrentDate + ' ' + cCurrentSales .
-    
+
   else if dCurrentSales = dMin then
     cMinDays = cMinDays + '~n' + cCurrentDate + ' ' + cCurrentSales.
-    
+
 end. /* do i */
 
 
