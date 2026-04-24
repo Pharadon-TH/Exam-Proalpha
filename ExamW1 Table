@@ -132,7 +132,7 @@ for each S_Artikel
       display 'Artikel: ' S_Artikel.Artikel skip
               'ArtikelArt: ' S_Artikel.ArtikelArt skip
               'LagerGewicht: ' S_Artikel.LagerGewicht skip
-              'First Kunde: ' bArtkunde.Kunde
+              'First Kunde: ' bArtkunde.Kunde.
     end. /* if */
   end. /* if */
 end. /* for */
