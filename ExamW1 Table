@@ -22,6 +22,7 @@ find first S_Artikel
     and S_Artikel.Artikel  begins '10'
   no-lock no-error.
 
+/*Find the last position of S_Kunde that is related to S_Artikel*/
 if available S_Artikel then
 do:
   find last S_Artkunde
@@ -53,11 +54,13 @@ define buffer bLast_Artikel for S_Artikel.
 find first bFirst_Artikel exclusive-lock no-error.
 find last  bLast_Artikel exclusive-lock no-error.
 
+  /* Fix Gewicht */
   if available bFirst_Artikel and available bLast_Artikel then
   do:
   bFirst_Artikel.Gewicht = 1.
   bLast_Artikel.Gewicht = 0.
 
+  /* Sum */
   assign
     bFirst_Artikel.Selektion = string(bFirst_Artikel.Gewicht + bLast_Artikel.Gewicht)
     bLast_Artikel.Selektion = string(bFirst_Artikel.Gewicht + bLast_Artikel.Gewicht)
@@ -97,6 +100,40 @@ do:
     'final: ' S_Artikel.Selektion.
 end. /* if */
 
+/* ---------------------------------------------------------------------------- */
 
+/*Table - 4*/
 
+define buffer bArtkunde for S_Artkunde.
+define buffer bKunde    for S_kunde.
+
+/* Loop find all S_Artikel */
+for each S_Artikel
+  no-lock:
+
+  /* Check S_Artikel in S_Artkunde*/
+  find first bArtkunde
+    where bArtkunde.Firma   = {firma/sartkund.fir '100'}
+      and bArtkunde.Artikel = S_Artikel.Artikel
+    no-lock no-error.
+
+  /* Check Kunde have 1 */
+  if available bArtkunde then
+  do:
+
+    /* Retrieving the first S_Kunde element from the main table */
+    find first bArtkunde
+      where bArtkunde.Firma   = {firma/sartkund.fir '100'}
+        and bArtkunde.Kunde   = bArtkunde.Kunde
+      no-lock no-error.
+      
+    if available bArtkunde then
+    do:
+      display 'Artikel: ' S_Artikel.Artikel skip
+              'ArtikelArt: ' S_Artikel.ArtikelArt skip
+              'LagerGewicht: ' S_Artikel.LagerGewicht skip
+              'First Kunde: ' bArtkunde.Kunde
+    end. /* if */
+  end. /* if */
+end. /* for */
 
