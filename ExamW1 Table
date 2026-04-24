@@ -47,27 +47,27 @@ end. /* if */
 
 /*Table - 3*/
 
-define buffer bfirst_Artikel for S_Artikel.
-define buffer blast_Artikel for S_Artikel.
+define buffer bFirst_Artikel for S_Artikel.
+define buffer bLast_Artikel for S_Artikel.
 
-find first bfirst_Artikel exclusive-lock no-error.
-find last  blast_Artikel exclusive-lock no-error.
+find first bFirst_Artikel exclusive-lock no-error.
+find last  bLast_Artikel exclusive-lock no-error.
 
-  if available bfirst_Artikel and available blast_Artikel then
+  if available bFirst_Artikel and available bLast_Artikel then
   do:
-  bfirst_Artikel.Gewicht = 1.
-  blast_Artikel.Gewicht = 0.
+  bFirst_Artikel.Gewicht = 1.
+  bLast_Artikel.Gewicht = 0.
 
   assign
-    bfirst_Artikel.Selektion = string(bfirst_Artikel.Gewicht + blast_Artikel.Gewicht)
-    blast_Artikel.Selektion = string(bfirst_Artikel.Gewicht + blast_Artikel.Gewicht)
+    bFirst_Artikel.Selektion = string(bFirst_Artikel.Gewicht + bLast_Artikel.Gewicht)
+    bLast_Artikel.Selektion = string(bFirst_Artikel.Gewicht + bLast_Artikel.Gewicht)
     .
   end. /* if */
 
   message
-    'first: ' bfirst_Artikel.Artikel 'weight: ' bfirst_Artikel.Gewicht skip
-    'last: ' blast_Artikel.Artikel 'weight: ' blast_Artikel.Gewicht skip
-    'final: '  bfirst_Artikel.Selektion .
+    'first: ' bFirst_Artikel.Artikel 'weight: ' bFirst_Artikel.Gewicht skip
+    'last: ' bLast_Artikel.Artikel 'weight: ' bLast_Artikel.Gewicht skip
+    'final: '  bFirst_Artikel.Selektion .
     
 /* ---------------------------------------------------------------------------- */
 
