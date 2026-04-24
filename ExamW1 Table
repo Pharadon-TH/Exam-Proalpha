@@ -137,3 +137,41 @@ for each S_Artikel
   end. /* if */
 end. /* for */
 
+/* ---------------------------------------------------------------------------- */
+
+/*Table - 5*/
+
+define buffer bArtkunde for S_Artkunde.
+define buffer bArtikel  for S_Artikel.
+
+/* Loop Kunde 100000-100017 */
+for each S_Kunde
+  where S_Kunde.Firma  = {firma/s_kunde.fir '100'}
+    and S_Kunde.Kunde  >= 100000
+    and S_Kunde.Kunde  <= 100017
+  no-lock:
+
+
+  /* find relation S_Artkunde table */
+  for each bArtkunde
+    where bArtkunde.Firma   = {firma/sartkund.fir '100'}
+      and bArtkunde.Kunde   = S_Kunde.Kunde
+    no-lock:
+
+    /* check condition ArtikelArt*/
+    find first bArtikel
+      where bArtikel.Firma    = {firma/s_kunde.fir '100'  }
+        and bArtikel.Artikel  = bArtkunde.Artikel
+        and lookup(string(bArtikel.ArtikelArt), '61,10,9,5,1') > 0
+      no-lock no-error.
+      
+    if available bArtikel then
+    do:
+      display 'Artikel: ' bArtikel.Artikel skip
+              'ArtikelArt: ' bArtikel.ArtikelArt skip
+              'Kunde: ' S_Kunde.Kunde skip
+              'Selektion ' S_Kunde.Selektion.
+
+    end. /* if */
+  end. /* each bArtkunde */
+end. /* for each S_Kunde */
