@@ -1,0 +1,102 @@
+/* ---------------------------------------------------------------------------- */
+
+/*Table - 1*/
+
+find first S_Artikel
+  where S_Artikel.Firma    = {firma/sartikel.fir '100'}
+    and S_Artikel.Artikel  begins '21'
+  no-lock no-error.
+
+if available S_Artikel then
+do:
+  display 'Output: ' S_Artikel.Artikel.
+end. /* if */
+
+
+/* ---------------------------------------------------------------------------- */
+
+/*Table - 2*/
+
+find first S_Artikel
+  where S_Artikel.Firma    = {firma/sartikel.fir '100'}
+    and S_Artikel.Artikel  begins '10'
+  no-lock no-error.
+
+if available S_Artikel then
+do:
+  find last S_Artkunde
+    where S_Artkunde.Firma = {firma/s_kunde.fir '100'}
+      and string(S_Artkunde.Artikel) = S_Artikel.Artikel
+    no-lock no-error.
+
+  if available S_Artkunde then
+  do:
+    find S_Kunde
+      where S_Kunde.Firma  = {firma/s_kunde.fir '100'}
+        and S_Kunde.Kunde  = S_Artkunde.Kunde
+      no-lock no-error.
+
+    if available S_Kunde then
+     display 'Kunde: ' S_Kunde.Kunde skip
+             'Artikel: ' S_Artikel.Artikel.
+  end. /* if */
+end. /* if */
+
+
+/* ---------------------------------------------------------------------------- */
+
+/*Table - 3*/
+
+define buffer bfirst_Artikel for S_Artikel.
+define buffer blast_Artikel for S_Artikel.
+
+find first bfirst_Artikel exclusive-lock no-error.
+find last  blast_Artikel exclusive-lock no-error.
+
+  if available bfirst_Artikel and available blast_Artikel then
+  do:
+  bfirst_Artikel.Gewicht = 1.
+  blast_Artikel.Gewicht = 0.
+
+  assign
+    bfirst_Artikel.Selektion = string(bfirst_Artikel.Gewicht + blast_Artikel.Gewicht)
+    blast_Artikel.Selektion = string(bfirst_Artikel.Gewicht + blast_Artikel.Gewicht)
+    .
+  end. /* if */
+
+  message
+    'first: ' bfirst_Artikel.Artikel 'weight: ' bfirst_Artikel.Gewicht skip
+    'last: ' blast_Artikel.Artikel 'weight: ' blast_Artikel.Gewicht skip
+    'final: '  bfirst_Artikel.Selektion .
+    
+/* ---------------------------------------------------------------------------- */
+
+/*Table - 3*/
+
+define buffer bfirst_Artikel for S_Artikel.
+define buffer blast_Artikel for S_Artikel.
+
+find first bfirst_Artikel no-lock no-error.
+find last  blast_Artikel no-lock no-error.
+
+find first S_Artikel
+  where S_Artikel.Artikel = ''
+  exclusive-lock no-error.
+
+if available S_Artikel then
+do:
+  if available bfirst_Artikel and available blast_Artikel then
+  do:
+  assign
+    S_Artikel.Selektion = string(bfirst_Artikel.Gewicht + blast_Artikel.Gewicht).
+  end. /* if */
+
+  message
+    'first: ' bfirst_Artikel.Artikel 'weight: ' bfirst_Artikel.Gewicht skip
+    'last: ' blast_Artikel.Artikel 'weight: ' blast_Artikel.Gewicht skip
+    'final: ' S_Artikel.Selektion.
+end. /* if */
+
+
+
+
