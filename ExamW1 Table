@@ -181,8 +181,7 @@ end. /* for each S_Kunde */
 
 /*Table - 6*/
 
-define buffer bArtkunde for S_Artkunde.
-define buffer bKunde    for S_Kunde.
+define buffer bS_Artkunde for S_Artkunde.
 
 define variable iCount    as integer   no-undo.
 define variable cTempList as character no-undo.
@@ -192,31 +191,31 @@ define variable cMaxList  as character no-undo.
 
 /* loop check all Artikel */
 for each S_Artikel
-  where S_Artikel.Firma    = {firma/sartikel.fir '100'}
+  where S_Artikel.Firma    = {firma/sartikel.fir '100':U}
   no-lock:
-  
+
   assign
     iCount    = 0
     cTempList = ''
     .
 
   /* Count Kunde and sum list relation S_Artkunde */
-  for each bArtkunde
-    where bArtkunde.Firma   = {firma/sartkund.fir '100'}
-      and bArtkunde.Artikel = S_Artikel.Artikel
+  for each bS_Artkunde
+    where bS_Artkunde.Firma   = {firma/sartkund.fir '100':U}
+      and bS_Artkunde.Artikel = S_Artikel.Artikel
     no-lock:
-    
-    find first bKunde
-      where bKunde.Firma  = {firma/s_kunde.fir '100'}
-        and bKunde.Kunde  = S_Kunde.Kunde
-      no-lock no-error.
-      
-      if available bKunde then
-      do:
+
         assign
           iCount    = iCount + 1
-          cTempList = cTempList + (if cTempList = '' then '' else ',') + string(bKunde.Kunde).
-      end. /* if  */
+          cTempList = cTempList
+                    + (if cTempList = '' then
+                         ''
+                       else
+                         ',')
+                    + string(bS_Artkunde.Kunde)
+          .
+
+  end. /* for each bS_Artkunde */
 
   /* check most count in relation */
   /* Use > so that if the same value is found later will not change the value */
@@ -224,12 +223,65 @@ for each S_Artikel
     assign
       iMaxCount = iCount
       cMaxArt   = S_Artikel.Artikel
-      cMaxList  = cTempList.
-  end. /* for each bArtkunde */
+      cMaxList  = cTempList
+      .
+
 end. /* for each S_Artikel */
 
 if cMaxArt <> '' then
 do:
   display
-    cMaxArt + '; ' + cMaxList + '; ' + string(iMaxCount).
-end. /* ? */
+    cMaxArt + '; ' + cMaxList + '; ' + string(iMaxCount)
+    format 'x(70)' column-label 'Result Output'.
+end. /* if cMaxArt */
+      
+/* ---------------------------------------------------------------------------- */
+
+/*Table - 7*/
+
+define buffer bS_Artkunde for S_Artkunde.
+define buffer bS_Kunde    for S_Kunde.
+
+define variable iCount     as integer   no-undo.
+define variable cKundeName as character no-undo.
+
+/* loop find all S_Artikel */
+for each S_Artikel
+  where S_Artikel.Firma    = {firma/sartikel.fir '100':U}
+  no-lock:
+
+  assign
+    iCount     = 0
+    cKundeName = ''
+    .
+
+  /* count Kunde is relation in bS_Artkunde */
+  for each bS_Artkunde
+    where bS_Artkunde.Firma   = {firma/sartkund.fir '100':U}
+      and bS_Artkunde.Artikel = S_Artikel.Artikel
+    no-lock:
+
+    /* find 1 Kunde*/
+    find first bS_Kunde
+      where bS_Kunde.Firma  = {firma/s_kunde.fir '100':U}
+        and bS_Kunde.Kunde  = bS_Artkunde.Kunde
+      no-lock no-error.
+
+      if available bS_Kunde then
+      do:
+
+        assign
+          iCount = iCount + 1
+          cKundeName = string(bS_Kunde.Kunde)
+          .
+
+      end. /* if */
+  end. /* for each bS_Artkunde */
+
+  /* check only 1 Kunde */
+  if iCount = 1 then
+  do:
+   display S_Artikel.Artikel column-label 'Artikel'
+           cKundeName column-label 'The Only Kunde'.
+  end. /* if */
+end. /* for each S_Artikel */
