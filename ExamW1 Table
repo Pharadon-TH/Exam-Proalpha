@@ -177,9 +177,9 @@ for each S_Kunde
 end. /* for each S_Kunde */
 
 
-/* */
+/* ---------------------------------------------------------------------------- */
 
-/*Table - 6*/
+/*Table - 6 (Final)*/ 
 
 define buffer bS_Artkunde for S_Artkunde.
 
