@@ -9,7 +9,7 @@ find first S_Artikel
 
 if available S_Artikel then
 do:
-  display 'Output: ' S_Artikel.Artikel.
+  display 'Output: ':U S_Artikel.Artikel.
 end. /* if */
 
 
@@ -26,20 +26,20 @@ find first S_Artikel
 if available S_Artikel then
 do:
   find last S_Artkunde
-    where S_Artkunde.Firma = {firma/s_kunde.fir '100'}
+    where S_Artkunde.Firma = {firma/s_kunde.fir '100':U}
       and string(S_Artkunde.Artikel) = S_Artikel.Artikel
     no-lock no-error.
 
   if available S_Artkunde then
   do:
     find S_Kunde
-      where S_Kunde.Firma  = {firma/s_kunde.fir '100'}
+      where S_Kunde.Firma  = {firma/s_kunde.fir '100':U}
         and S_Kunde.Kunde  = S_Artkunde.Kunde
       no-lock no-error.
 
     if available S_Kunde then
-     display 'Kunde: ' S_Kunde.Kunde skip
-             'Artikel: ' S_Artikel.Artikel.
+     display 'Kunde: ':U S_Kunde.Kunde skip
+             'Artikel: ':U S_Artikel.Artikel.
   end. /* if */
 end. /* if */
 
@@ -48,101 +48,71 @@ end. /* if */
 
 /*Table - 3*/
 
-define buffer bFirst_Artikel for S_Artikel.
-define buffer bLast_Artikel for S_Artikel.
+define buffer bFirstS_Artikel for S_Artikel.
+define buffer bLastS_Artikel  for S_Artikel.
 
-find first bFirst_Artikel exclusive-lock no-error.
-find last  bLast_Artikel exclusive-lock no-error.
-
-  /* Fix Gewicht */
-  if available bFirst_Artikel and available bLast_Artikel then
-  do:
-  bFirst_Artikel.Gewicht = 1.
-  bLast_Artikel.Gewicht = 0.
-
-  /* Sum */
-  assign
-    bFirst_Artikel.Selektion = string(bFirst_Artikel.Gewicht + bLast_Artikel.Gewicht)
-    bLast_Artikel.Selektion = string(bFirst_Artikel.Gewicht + bLast_Artikel.Gewicht)
-    .
-  end. /* if */
-
-  message
-    'first: ' bFirst_Artikel.Artikel 'weight: ' bFirst_Artikel.Gewicht skip
-    'last: ' bLast_Artikel.Artikel 'weight: ' bLast_Artikel.Gewicht skip
-    'final: '  bFirst_Artikel.Selektion .
-    
-/* ---------------------------------------------------------------------------- */
-
-/*Table - 3*/
-
-define buffer bfirst_Artikel for S_Artikel.
-define buffer blast_Artikel for S_Artikel.
-
-find first bfirst_Artikel no-lock no-error.
-find last  blast_Artikel no-lock no-error.
-
-find first S_Artikel
-  where S_Artikel.Artikel = ''
+find first bFirstS_Artikel
+  where bFirstS_Artikel.Firma = {firma/sartikel.fir '100':U}
   exclusive-lock no-error.
 
-if available S_Artikel then
-do:
-  if available bfirst_Artikel and available blast_Artikel then
-  do:
-  assign
-    S_Artikel.Selektion = string(bfirst_Artikel.Gewicht + blast_Artikel.Gewicht).
-  end. /* if */
+find last bLastS_Artikel
+  where bLastS_Artikel.Firma = {firma/sartikel.fir '100':U}
+  exclusive-lock no-error.
 
-  message
-    'first: ' bfirst_Artikel.Artikel 'weight: ' bfirst_Artikel.Gewicht skip
-    'last: ' blast_Artikel.Artikel 'weight: ' blast_Artikel.Gewicht skip
-    'final: ' S_Artikel.Selektion.
+  /* sum first + last */
+if available bFirstS_Artikel and available bLastS_Artikel then
+do:
+  assign
+    bFirstS_Artikel.Selektion = string(bFirstS_Artikel.Gewicht + bLastS_Artikel.Gewicht)
+    bLastS_Artikel.Selektion  = string(bFirstS_Artikel.Gewicht + bLastS_Artikel.Gewicht)
+    .
 end. /* if */
+
+/* Result */
+message
+  'first: ':U bFirstS_Artikel.Artikel 'weight: ':U bFirstS_Artikel.Gewicht skip
+  'last: ':U bLastS_Artikel.Artikel 'weight: ':U bLastS_Artikel.Gewicht skip
+  'final: ':U bFirstS_Artikel.Gewicht + bLastS_Artikel.Gewicht.
 
 /* ---------------------------------------------------------------------------- */
 
 /*Table - 4*/
-
-define buffer bArtkunde for S_Artkunde.
-define buffer bKunde    for S_kunde.
 
 /* Loop find all S_Artikel */
 for each S_Artikel
   no-lock:
 
   /* Check S_Artikel in S_Artkunde*/
-  find first bArtkunde
-    where bArtkunde.Firma   = {firma/sartkund.fir '100'}
-      and bArtkunde.Artikel = S_Artikel.Artikel
+  find first S_Artkunde
+    where S_Artkunde.Firma   = {firma/sartkund.fir '100':U}
+      and S_Artkunde.Artikel = S_Artikel.Artikel
     no-lock no-error.
 
   /* Check Kunde have 1 */
-  if available bArtkunde then
+  if available S_Artkunde then
   do:
 
     /* Retrieving the first S_Kunde element from the main table */
-    find first bArtkunde
-      where bArtkunde.Firma   = {firma/sartkund.fir '100'}
-        and bArtkunde.Kunde   = bArtkunde.Kunde
+    find first S_Artkunde
+      where S_Artkunde.Firma   = {firma/sartkund.fir '100':U}
+        and S_Artkunde.Kunde   = S_Artkunde.Kunde
       no-lock no-error.
-      
-    if available bArtkunde then
+
+    if available S_Artkunde then
     do:
-      display 'Artikel: ' S_Artikel.Artikel skip
-              'ArtikelArt: ' S_Artikel.ArtikelArt skip
-              'LagerGewicht: ' S_Artikel.LagerGewicht skip
-              'First Kunde: ' bArtkunde.Kunde.
+      display 'Artikel: ':U S_Artikel.Artikel
+              'ArtikelArt: ':U S_Artikel.ArtikelArt
+              'LagerGewicht: ':U S_Artikel.LagerGewicht
+              'First Kunde: ':U S_Artkunde.Kunde
+              with width 120 down.
     end. /* if */
   end. /* if */
 end. /* for */
 
+
 /* ---------------------------------------------------------------------------- */
 
 /*Table - 5*/
-
-define buffer bArtkunde for S_Artkunde.
-define buffer bArtikel  for S_Artikel.
 
 /* Loop Kunde 100000-100017 */
 for each S_Kunde
@@ -153,40 +123,40 @@ for each S_Kunde
 
 
   /* find relation S_Artkunde table */
-  for each bArtkunde
-    where bArtkunde.Firma   = {firma/sartkund.fir '100'}
-      and bArtkunde.Kunde   = S_Kunde.Kunde
+  for each S_Artkunde
+    where S_Artkunde.Firma   = {firma/sartkund.fir '100':U}
+      and S_Artkunde.Kunde   = S_Kunde.Kunde
     no-lock:
 
     /* check condition ArtikelArt*/
-    find first bArtikel
-      where bArtikel.Firma    = {firma/s_kunde.fir '100'  }
-        and bArtikel.Artikel  = bArtkunde.Artikel
-        and lookup(string(bArtikel.ArtikelArt), '61,10,9,5,1') > 0
+    find first S_Artikel
+      where S_Artikel.Firma    = {firma/sartikel.fir '100':U}
+        and S_Artikel.Artikel  = S_Artkunde.Artikel
+        and lookup(string(S_Artikel.ArtikelArt), '61,10,9,5,1') > 0
       no-lock no-error.
-      
-    if available bArtikel then
+
+    if available S_Artikel then
     do:
-      display 'Artikel: ' bArtikel.Artikel skip
-              'ArtikelArt: ' bArtikel.ArtikelArt skip
-              'Kunde: ' S_Kunde.Kunde skip
-              'Selektion ' S_Kunde.Selektion.
+      display 'Artikel: ':U S_Artikel.Artikel
+              'ArtikelArt: ':U S_Artikel.ArtikelArt
+              'Kunde: ':U S_Kunde.Kunde
+              'Selektion ':U S_Kunde.Selektion
+              with width 120 down.
 
     end. /* if */
   end. /* each bArtkunde */
 end. /* for each S_Kunde */
 
 
+
 /* ---------------------------------------------------------------------------- */
 
-/*Table - 6 (Final)*/ 
-
-define buffer bS_Artkunde for S_Artkunde.
+/*Table - 6*/
 
 define variable iCount    as integer   no-undo.
 define variable cTempList as character no-undo.
 define variable iMaxCount as integer   no-undo.
-define variable cMaxArt   as character no-undo.
+define variable cArt      as character no-undo.
 define variable cMaxList  as character no-undo.
 
 /* loop check all Artikel */
@@ -200,9 +170,9 @@ for each S_Artikel
     .
 
   /* Count Kunde and sum list relation S_Artkunde */
-  for each bS_Artkunde
-    where bS_Artkunde.Firma   = {firma/sartkund.fir '100':U}
-      and bS_Artkunde.Artikel = S_Artikel.Artikel
+  for each S_Artkunde
+    where S_Artkunde.Firma   = {firma/sartkund.fir '100':U}
+      and S_Artkunde.Artikel = S_Artikel.Artikel
     no-lock:
 
         assign
@@ -212,7 +182,7 @@ for each S_Artikel
                          ''
                        else
                          ',')
-                    + string(bS_Artkunde.Kunde)
+                    + string(S_Artkunde.Kunde)
           .
 
   end. /* for each bS_Artkunde */
@@ -222,25 +192,22 @@ for each S_Artikel
   if iCount > iMaxCount then
     assign
       iMaxCount = iCount
-      cMaxArt   = S_Artikel.Artikel
+      cArt   = S_Artikel.Artikel
       cMaxList  = cTempList
       .
 
 end. /* for each S_Artikel */
 
-if cMaxArt <> '' then
+if cArt <> '' then
 do:
   display
-    cMaxArt + '; ' + cMaxList + '; ' + string(iMaxCount)
-    format 'x(70)' column-label 'Result Output'.
-end. /* if cMaxArt */
+    cArt + '; ' + cMaxList + '; ' + string(iMaxCount)
+    format 'x(70)' column-label 'Result Output':U.
+end. /* if cArt */
       
 /* ---------------------------------------------------------------------------- */
 
 /*Table - 7*/
-
-define buffer bS_Artkunde for S_Artkunde.
-define buffer bS_Kunde    for S_Kunde.
 
 define variable iCount     as integer   no-undo.
 define variable cKundeName as character no-undo.
@@ -256,23 +223,23 @@ for each S_Artikel
     .
 
   /* count Kunde is relation in bS_Artkunde */
-  for each bS_Artkunde
-    where bS_Artkunde.Firma   = {firma/sartkund.fir '100':U}
-      and bS_Artkunde.Artikel = S_Artikel.Artikel
+  for each S_Artkunde
+    where S_Artkunde.Firma   = {firma/sartkund.fir '100':U}
+      and S_Artkunde.Artikel = S_Artikel.Artikel
     no-lock:
 
     /* find 1 Kunde*/
-    find first bS_Kunde
-      where bS_Kunde.Firma  = {firma/s_kunde.fir '100':U}
-        and bS_Kunde.Kunde  = bS_Artkunde.Kunde
+    find first S_Kunde
+      where S_Kunde.Firma  = {firma/s_kunde.fir '100':U}
+        and S_Kunde.Kunde  = S_Artkunde.Kunde
       no-lock no-error.
 
-      if available bS_Kunde then
+      if available S_Kunde then
       do:
 
         assign
           iCount = iCount + 1
-          cKundeName = string(bS_Kunde.Kunde)
+          cKundeName = string(S_Kunde.Kunde)
           .
 
       end. /* if */
@@ -281,7 +248,198 @@ for each S_Artikel
   /* check only 1 Kunde */
   if iCount = 1 then
   do:
-   display S_Artikel.Artikel column-label 'Artikel'
-           cKundeName column-label 'The Only Kunde'.
+   display S_Artikel.Artikel column-label 'Artikel':U
+           cKundeName        column-label 'The Only Kunde':U.
   end. /* if */
 end. /* for each S_Artikel */
+
+/* ---------------------------------------------------------------------------- */
+
+/*Table - 8*/
+
+define variable iCount      as integer   no-undo.
+define variable iMaxCount   as integer   no-undo.
+define variable cMaxKunde   as character no-undo.
+
+/* loop check all S_Kunde */
+for each S_Kunde
+  where S_Kunde.Firma  = {firma/s_kunde.fir '100':U}
+  no-lock:
+  
+  assign
+    iCount = 0
+    .
+    
+  /* count Artikel relation Kunde */
+  for each S_Artkunde
+    where S_Artkunde.Firma   = {firma/sartkund.fir '100':U}
+      and S_Artkunde.Kunde   = S_Kunde.Kunde
+    no-lock:
+    
+    assign
+      iCount = iCount + 1
+    .
+    
+    /* Check and collect the highest customer orders */
+    if iCount > iMaxCount then
+    do:
+  
+      assign
+        iMaxCount   = iCount
+        cMaxKunde   = string(S_Kunde.Kunde).
+  
+    end. /* if */
+  end. /* for each bS_Artkunde */
+end. /* for each S_Kunde */
+
+if cMaxKunde <> '' then
+do:
+  display cMaxKunde   label 'Kunde':U
+          iMaxCount   label 'Total Artikel':U.
+end. /* if */
+
+/* ---------------------------------------------------------------------------- */
+
+/*Table - 9*/
+
+define variable iCount   as integer   no-undo.
+define variable cArtList as character no-undo.
+define variable lStart2  as logical   no-undo.
+
+/* loop all Kunde */
+for each S_Kunde
+  where S_Kunde.Firma  = {firma/s_kunde.fir '100':U}
+  no-lock:
+
+  assign
+    iCount   = 0
+    cArtList = ''
+    lStart2  = false
+    .
+
+  /* loop check Artkunde */
+  for each S_ArtKunde
+    where S_ArtKunde.Firma   = {firma/sartkund.fir '100':U}
+      and S_ArtKunde.Kunde   = S_Kunde.Kunde
+      and S_Artkunde.Artikel begins '2'
+    no-lock:
+
+    assign
+      iCount   = iCount + 1
+
+      /* give Artikel in list */
+      cArtList = cArtList + cArtList
+                    + (if cArtList = '' then
+                         ''
+                       else
+                         ',')
+                    + string(S_Artkunde.Artikel)
+      .
+
+    /* check primary key show '2' in first position */
+    if string(S_Artkunde.Artikel) begins '2' then
+      lStart2 = true.
+
+  end. /* for each S_ArtKunde */
+
+  /* check conditions in Example */
+  if iCount > 0 and iCount <= 5 and lStart2 = true then
+  do:
+    display string(S_Kunde.Kunde) + ',' + cArtList
+            format 'x(60)' column-label 'Output'
+            with width 100 down.
+  end. /* if */
+end. /* for each S_Kunde */
+
+/* ---------------------------------------------------------------------------- */
+
+/*Table - 10*/
+
+/* loop all S_Artikel */
+for each S_Artikel
+  where S_Artikel.Firma    = {firma/sartikel.fir '100':U}
+  no-lock:
+
+  /* Try to find the Artikel connected to Artkunde */
+  find first S_Artkunde
+    where S_Artkunde.Firma   = {firma/sartkund.fir '100':U}
+      and S_Artkunde.Artikel = S_Artikel.Artikel
+    no-lock no-error.
+
+    /* Check that can't find it */
+    if not available S_Artkunde then
+    do:
+      display S_Artikel.Artikel     column-label 'Artikel':U
+              S_Artikel.ArtikelArt  column-label 'ArtikelArt':U
+              S_Artikel.Suchbegriff column-label 'Suchbegriff':U
+      with width 120 down.
+    end. /* if */
+end. /* for each S_Artikel */
+
+/* ---------------------------------------------------------------------------- */
+
+/*Table - 11*/
+
+/* loop find all S_Artkunde */
+for each S_Artkunde
+  where S_Artkunde.Firma   = {firma/sartkund.fir '100':U}
+  no-lock:
+
+  /* check Artikel first position '3' */
+  find first S_Artikel
+    where S_Artikel.Firma    = {firma/sartikel.fir '100':U}
+      and S_Artikel.Artikel  = S_Artkunde.Artikel
+      and S_Artikel.Artikel  begins '3'
+    no-lock no-error.
+
+  if available S_Artikel then
+  do:
+    /* find da*/
+    find first S_ArtikelSpr
+      where S_ArtikelSpr.Firma    = {firma/sartikel.fir '100':U}
+        and S_ArtikelSpr.Artikel  = S_Artikel.Artikel
+      no-lock no-error.
+
+    find first S_Kunde
+      where S_Kunde.Firma  = {firma/s_kunde.fir '100':U}
+        and S_Kunde.Kunde  = S_Artkunde.Kunde
+      no-lock no-error.
+
+    if available S_Kunde then
+    do:
+      find first S_Adresse
+        where S_Adresse.Firma     = {firma/s_adres.fir '100':U}
+          and S_Adresse.AdressNr  = S_Kunde.AdressNr
+        no-lock no-error.
+
+      display S_Artikel.Artikel           column-label 'Artikel':U
+              S_ArtikelSpr.Bezeichnung[1] column-label 'description1':U format 'x(20)'
+              S_ArtikelSpr.Bezeichnung[2] column-label 'description2':U format 'x(20)'
+              S_Kunde.Kunde               column-label 'Kunde':U
+              S_Adresse.Name1             column-label 'KundeName1':U format 'x(20)'
+              S_Adresse.Telefon           column-label 'Telefon':U
+              with width 150 down.
+
+    end. /* if available S_Kunde */
+  end. /* if available S_Artikel */
+end. /* for each S_Artkunde */
+  
+/* ---------------------------------------------------------------------------- */
+
+/*Table - 12*/
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
