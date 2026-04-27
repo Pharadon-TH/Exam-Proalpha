@@ -80,6 +80,7 @@ message
 
 /* Loop find all S_Artikel */
 for each S_Artikel
+  where S_Artikel.Firma    = {firma/sartikel.fir '100':U}
   no-lock:
 
   /* Check S_Artikel in S_Artkunde*/
@@ -91,21 +92,11 @@ for each S_Artikel
   /* Check Kunde have 1 */
   if available S_Artkunde then
   do:
-
-    /* Retrieving the first S_Kunde element from the main table */
-    find first S_Artkunde
-      where S_Artkunde.Firma   = {firma/sartkund.fir '100':U}
-        and S_Artkunde.Kunde   = S_Artkunde.Kunde
-      no-lock no-error.
-
-    if available S_Artkunde then
-    do:
       display 'Artikel: ':U S_Artikel.Artikel
               'ArtikelArt: ':U S_Artikel.ArtikelArt
               'LagerGewicht: ':U S_Artikel.LagerGewicht
               'First Kunde: ':U S_Artkunde.Kunde
               with width 120 down.
-    end. /* if */
   end. /* if */
 end. /* for */
 
@@ -129,13 +120,12 @@ for each S_Kunde
     no-lock:
 
     /* check condition ArtikelArt*/
-    find first S_Artikel
+    find S_Artikel
       where S_Artikel.Firma    = {firma/sartikel.fir '100':U}
         and S_Artikel.Artikel  = S_Artkunde.Artikel
-        and lookup(string(S_Artikel.ArtikelArt), '61,10,9,5,1') > 0
       no-lock no-error.
 
-    if available S_Artikel then
+    if available S_Artikel and lookup(string(S_Artikel.ArtikelArt), '61,10,9,5,1') > 0 then
     do:
       display 'Artikel: ':U S_Artikel.Artikel
               'ArtikelArt: ':U S_Artikel.ArtikelArt
@@ -175,15 +165,15 @@ for each S_Artikel
       and S_Artkunde.Artikel = S_Artikel.Artikel
     no-lock:
 
-        assign
-          iCount    = iCount + 1
-          cTempList = cTempList
-                    + (if cTempList = '' then
-                         ''
-                       else
-                         ',')
-                    + string(S_Artkunde.Kunde)
-          .
+      assign
+        iCount    = iCount + 1
+        cTempList = cTempList
+                  + (if cTempList = '' then
+                       ''
+                     else
+                       ',')
+                  + string(S_Artkunde.Kunde)
+      .
 
   end. /* for each bS_Artkunde */
 
@@ -192,7 +182,7 @@ for each S_Artikel
   if iCount > iMaxCount then
     assign
       iMaxCount = iCount
-      cArt   = S_Artikel.Artikel
+      cArt      = S_Artikel.Artikel
       cMaxList  = cTempList
       .
 
@@ -222,27 +212,17 @@ for each S_Artikel
     cKundeName = ''
     .
 
-  /* count Kunde is relation in bS_Artkunde */
+  /* count Kunde is relation in S_Artkunde */
   for each S_Artkunde
     where S_Artkunde.Firma   = {firma/sartkund.fir '100':U}
       and S_Artkunde.Artikel = S_Artikel.Artikel
     no-lock:
 
-    /* find 1 Kunde*/
-    find first S_Kunde
-      where S_Kunde.Firma  = {firma/s_kunde.fir '100':U}
-        and S_Kunde.Kunde  = S_Artkunde.Kunde
-      no-lock no-error.
-
-      if available S_Kunde then
-      do:
-
         assign
           iCount = iCount + 1
-          cKundeName = string(S_Kunde.Kunde)
+          cKundeName = string(S_Artkunde.Kunde)
           .
 
-      end. /* if */
   end. /* for each bS_Artkunde */
 
   /* check only 1 Kunde */
@@ -321,19 +301,18 @@ for each S_Kunde
   for each S_ArtKunde
     where S_ArtKunde.Firma   = {firma/sartkund.fir '100':U}
       and S_ArtKunde.Kunde   = S_Kunde.Kunde
-      and S_Artkunde.Artikel begins '2'
     no-lock:
 
     assign
       iCount   = iCount + 1
 
       /* give Artikel in list */
-      cArtList = cArtList + cArtList
-                    + (if cArtList = '' then
-                         ''
-                       else
-                         ',')
-                    + string(S_Artkunde.Artikel)
+      cArtList = cArtList
+               + (if cArtList = '' then
+                    ''
+                  else
+                    ',')
+               + string(S_Artkunde.Artikel)
       .
 
     /* check primary key show '2' in first position */
@@ -341,6 +320,8 @@ for each S_Kunde
       lStart2 = true.
 
   end. /* for each S_ArtKunde */
+
+
 
   /* check conditions in Example */
   if iCount > 0 and iCount <= 5 and lStart2 = true then
@@ -394,12 +375,13 @@ for each S_Artkunde
 
   if available S_Artikel then
   do:
-    /* find da*/
+    /* find description in S_ArtikelSpr */
     find first S_ArtikelSpr
       where S_ArtikelSpr.Firma    = {firma/sartikel.fir '100':U}
         and S_ArtikelSpr.Artikel  = S_Artikel.Artikel
       no-lock no-error.
 
+    /* find S_Kunde  */
     find first S_Kunde
       where S_Kunde.Firma  = {firma/s_kunde.fir '100':U}
         and S_Kunde.Kunde  = S_Artkunde.Kunde
@@ -428,14 +410,7 @@ end. /* for each S_Artkunde */
 
 /*Table - 12*/
       
-
-
-
-
-
-
-
-
+output to 'D:/Work/output.log'.
 
 
 
