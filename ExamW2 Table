@@ -495,12 +495,12 @@ message 'Export CSV via Stream Complete'
 /* Table - 13 */
 
 define temp-table ttS_Report no-undo
-  field Artikel    as character label 'Artikel'
-  field ArtikelSpr as character label 'Description'
-  field Kunde      as character label 'Kunde'
-  field KundeName  as character label 'KundeName'
-  field Lieferant  as character label 'Lieferant'
-  field LiefName   as character label 'LiefName'.
+  field Artikel    as character label 'Artikel':U
+  field ArtikelSpr as character label 'Description':U
+  field Kunde      as character label 'Kunde':U
+  field KundeName  as character label 'KundeName':U
+  field Lieferant  as character label 'Lieferant':U
+  field LiefName   as character label 'LiefName':U.
 
 define variable iKundeCount as integer   no-undo.
 define variable iLiefCount  as integer   no-undo.
@@ -620,8 +620,175 @@ for each ttS_Report:
     ttS_Report.LiefName   format 'x(30)'
   with width 150 down.
 end.
-  
+
 /* ---------------------------------------------------------------------------- */
+
+/* Table - 14 */
+
+define stream stExport.
+/* export to file */
+output stream stExport to 'D:/Work/ttS_Export.csv':U.
+put    stream stExport unformatted 'Artikel;Bezeichnung 1;Relate to' skip.
+
+define variable cFirstChar as character no-undo.
+
+define temp-table ttS_Export no-undo
+  field Artikel    as character label 'Artikel':U
+  field ArtikelSpr as character label 'Description':U
+  field Relate     as character label 'Relate':U
+  .
+
+/* loop check S_Artikel */
+for each S_Artikel
+  where S_Artikel.Firma    = {firma/sartikel.fir '100':U}
+  no-lock:
+
+  /* Retrieve the first S_Artikel information */
+  cFirstChar = substring(S_Artikel.Artikel, 1, 1).
+
+  create
+    ttS_Export
+    .
+  assign
+    ttS_Export.Artikel = S_Artikel.Artikel
+    .
+
+  /* loop check descrition */
+  find first S_ArtikelSpr
+    where S_ArtikelSpr.Firma    = {firma/sartikel.fir '100':U}
+      and S_ArtikelSpr.Artikel  = S_Artikel.Artikel
+    no-lock no-error.
+
+  if available S_ArtikelSpr then
+  assign
+    ttS_Export.ArtikelSpr = S_ArtikelSpr.Bezeichnung[1]
+    .
+
+  /* logic separated by numbers */
+  /* case A: 1,3,5,7,9 find last Kunde */
+  if lookup(cFirstChar, '1,3,5,7,9') > 0 then
+  do:
+    find last S_ArtKunde
+      where S_ArtKunde.Firma   = {firma/sartkund.fir '100':U}
+        and S_ArtKunde.Artikel = S_Artikel.Artikel
+      no-lock no-error.
+
+    if available S_ArtKunde then
+    assign
+      ttS_Export.Relate = 'Kunde ':U + string(S_ArtKunde.Kunde)
+      .
+  end. /* if lookup */
+
+  /* case B: 2,4,6,8 find last Lieferant */
+  else if lookup(cFirstChar, '2,4,6,8') > 0 then
+  do:
+    find last E_ArtLief
+      where E_ArtLief.Firma      = {firma/e_artli.fir '100':U}
+        and E_ArtLief.Artikel    = S_Artikel.Artikel
+      no-lock no-error.
+
+    if available E_ArtLief then
+    assign
+      ttS_Export.Relate = 'Lieferant ':U + string(E_ArtLief.Lieferant)
+      .
+  end. /* else if lookup */
+  
+  /* case C: another (first A-Z) find Kunde+Lieferant */
+  else
+  do:
+    find first S_ArtKunde
+      where S_ArtKunde.Firma   = {firma/sartkund.fir '100':U}
+        and S_ArtKunde.Artikel = S_Artikel.Artikel
+      no-lock no-error.
+
+    find first E_ArtLief
+      where E_ArtLief.Firma     = {firma/e_artli.fir '100':U}
+        and E_ArtLief.Artikel   = S_Artikel.Artikel
+      no-lock no-error.
+
+     assign
+       ttS_Export.Relate = (if available S_ArtKunde and available E_ArtLief then
+                              ''
+                            else
+                              '') +
+                           (if available S_ArtKunde then
+                              'Kunde ':U + string(S_ArtKunde.Kunde)
+                            else
+                              '') +
+                           (if available E_ArtLief and available S_ArtKunde then
+                              ' '
+                            else
+                              '') +
+                           (if available E_ArtLief then
+                              'Lieferant ':U + string(E_ArtLief.Lieferant)
+                            else
+                              '')
+       .
+
+   end. /* else */
+
+   if ttS_Export.Relate = '' then
+     delete ttS_Export.
+
+end. /* for each S_Artikel */
+
+for each ttS_Export:
+  export stream stExport delimiter ';'
+    ttS_Export.Artikel
+    ttS_Export.ArtikelSpr
+    ttS_Export.Relate.
+end. /* for each ttS_Export */
+
+message 'Export Complete'
+        view-as alert-box.
+
+/* ---------------------------------------------------------------------------- */
+
+/* Table - 15 */
+
+define stream stDeliv.
+
+define variable tDelivDate as date      no-undo.
+define variable            as character no-undo
+define variable iWait      as integer   no-undo.
+define variable iAdded     as integer   no-undo.
+
+output stream stDeliv to 'D:/Work/Table-15.csv':U.
+put    stream stDeliv unformatted 'Lieferant;Name1;Teil;Bezeichnung1;Lieferzeit;Lieferzeiteinheit;DeliveryDate;MinBestellMenge;Grundmenge' skip.
+
+/* loop check E_ArtLief */
+for each E_ArtLief
+  where E_ArtLief.Firma      = {firma/e_artli.fir '100':U}
+  no-lock:
+
+  assign
+    tDelivDate = today
+    iWait      = E_ArtLief.Lieferzeit
+    .
+    
+  /* logic calculate Delivery Date */
+  /* Condition KTG */
+  if E_ArtLief.Lieferzeiteinheit = 'KTG' then
+  do:
+    assign
+      tDelivDate = today + iWait
+      .
+  end. /* if E_ArtLief.Lieferzeiteinheit */
+  
+  /* Condition ATG */
+  else E_ArtLief.Lieferzeiteinheit = 'ATG' then
+  do:
+    iAdded = 0.
+    do while iAdded < iWait:
+      tDelivDate = tDelivDate + 1
+    end. /* do while */
+  end. /* else */
+  
+
+
+
+
+
 
 
 
