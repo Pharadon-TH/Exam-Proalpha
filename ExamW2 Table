@@ -408,9 +408,220 @@ end. /* for each S_Artkunde */
   
 /* ---------------------------------------------------------------------------- */
 
-/*Table - 12*/
-      
-output to 'D:/Work/output.log'.
+/* Table - 12 */
+
+define stream stReport.
+
+output stream stReport to 'D:/Work/stReport.csv':U.
+put    stream stReport unformatted 'Artikel;Bezeichnung1;ArtikleArt;Lieferant;Name1':U skip.
+
+/* loop check S_Artikel */
+for each S_Artikel
+  where S_Artikel.Firma    = {firma/sartikel.fir '100':U}
+  no-lock:
+
+  /* check ArtikelArt condition in list */
+  if lookup(string(S_Artikel.ArtikelArt), "0,1,10,15") = 0 then
+  do:
+
+    /* check Kunde not have relation in Artikel */
+    find first S_ArtKunde
+      where S_ArtKunde.Firma   = {firma/sartkund.fir '100':U}
+        and S_ArtKunde.Artikel = S_Artikel.Artikel
+      no-lock no-error.
+
+      if not available S_ArtKunde then
+      do:
+
+        /* check have Lieferant */
+        find first E_Artlief
+          where E_Artlief.Firma      = {firma/e_artli.fir '100':U}
+            and E_Artlief.Artikel = S_Artikel.Artikel
+          no-lock no-error.
+
+          /* Retrieve supplier in relation */
+          if available E_Artlief then
+          do:
+            find first S_Lieferant
+              where S_Lieferant.Firma      = {firma/sliefera.fir '100':U}
+                and S_Lieferant.Lieferant  = E_Artlief.Lieferant
+              no-lock no-error.
+
+              if available S_ArtikelSpr then
+                S_ArtikelSpr.Bezeichnung[1].
+              else
+                "".
+            
+            /* check name S_Lieferant */
+            find first S_Adresse
+              where S_Adresse.Firma     = {firma/s_adres.fir '100':U}
+                and S_Adresse.AdressNr  = S_Lieferant.AdressNr
+              no-lock no-error.
+
+              if available S_Adresse then
+                S_Adresse.Name1.
+              else
+                "".
+            
+            /* find description1 in S_ArtikelSpr */
+            find first S_ArtikelSpr
+              where S_ArtikelSpr.Firma    = {firma/sartikel.fir '100':U}
+                and S_ArtikelSpr.Artikel = S_Artikel.Artikel
+              no-lock no-error.
+
+              if available S_ArtikelSpr then
+                S_Artikel.ArtikelArt.
+              else
+                "".
+            /* Result */
+            export stream stReport delimiter ";"
+              S_Artikel.Artikel
+              S_ArtikelSpr.Bezeichnung[1]
+              S_Artikel.ArtikelArt
+              E_Artlief.Lieferant
+              S_Adresse.Name1.
+
+          end. /* if available E_Artlief */
+      end. /* if not available S_ArtKunde */
+  end. /* if lookup */
+end. /* for each S_Artikel */
+
+output stream stReport close.
+message 'Export CSV via Stream Complete'
+        view-as alert-box.
+        
+/* ---------------------------------------------------------------------------- */
+
+/* Table - 13 */
+
+define temp-table ttS_Report no-undo
+  field Artikel    as character label 'Artikel'
+  field ArtikelSpr as character label 'Description'
+  field Kunde      as character label 'Kunde'
+  field KundeName  as character label 'KundeName'
+  field Lieferant  as character label 'Lieferant'
+  field LiefName   as character label 'LiefName'.
+
+define variable iKundeCount as integer   no-undo.
+define variable iLiefCount  as integer   no-undo.
+define variable cKunde      as character no-undo.
+define variable cLief       as character no-undo.
+
+/* loop check S_Artikel */
+for each S_Artikel
+  where S_Artikel.Firma    = {firma/sartikel.fir '100':U}
+  no-lock:
+
+  assign
+    iKundeCount = 0
+    iLiefCount  = 0
+    cKunde      = ''
+    cLief       = ''
+    .
+
+  /* check S_Kunde is relation with S_Artikel in S_ArtKunde */
+  for each S_ArtKunde
+    where S_ArtKunde.Firma   = {firma/sartkund.fir '100':U}
+      and S_ArtKunde.Artikel = S_Artikel.Artikel
+    no-lock:
+
+    assign
+      iKundeCount = iKundeCount + 1
+      cKunde      = string(S_ArtKunde.Kunde)
+      .
+
+  end. /* for each S_ArtKunde */
+
+  /* if Kunde have 1 only work to Lief */
+  if iKundeCount = 1 then
+  do:
+
+    for each E_ArtLief
+      where E_ArtLief.Firma      = {firma/e_artli.fir '100':U}
+        and E_ArtLief.Artikel    = S_Artikel.Artikel
+      no-lock:
+
+      assign
+        iLiefCount = iLiefCount + 1
+        cLief = string(E_ArtLief.Lieferant)
+        .
+
+    end. /* for each E_ArtLief */
+
+    /* if Lief have 1 is true condition (1:1) */
+    if iLiefCount = 1 then
+    do:
+
+      /* create record in temp-table */
+      create ttS_Report.
+      assign
+        ttS_Report.Artikel   = S_Artikel.Artikel
+        ttS_Report.Kunde     = cKunde
+        ttS_Report.Lieferant = cLief
+        .
+
+      /* check description1,2 */
+      find first S_ArtikelSpr
+        where S_ArtikelSpr.Firma    = {firma/sartikel.fir '100':U}
+          and S_ArtikelSpr.Artikel  = S_Artikel.Artikel
+        no-lock no-error.
+
+      if available S_ArtikelSpr then
+      assign
+        ttS_Report.ArtikelSpr = S_ArtikelSpr.Bezeichnung[1] + ' ' + S_ArtikelSpr.Bezeichnung[2]
+        .
+
+      /* Retrieve S_Kunde information from S_Adresse */
+      find first S_Kunde
+        where S_Kunde.Firma          = {firma/s_kunde.fir '100':U}
+          and string(S_Kunde.Kunde)  = cKunde
+        no-lock no-error.
+
+      if available S_Kunde then
+        find first S_Adresse
+          where S_Adresse.Firma     = {firma/s_adres.fir '100':U}
+            and S_Adresse.AdressNr  = S_Kunde.AdressNr
+          no-lock no-error.
+
+        if available S_Adresse then
+        assign
+          ttS_Report.KundeName = S_Adresse.Name1
+          .
+
+      /* Retrieve S_Lieferant information from S_Adresse */
+      find first S_Lieferant
+        where S_Lieferant.Firma              = {firma/sliefera.fir '100':U}
+          and string(S_Lieferant.Lieferant)  = cLief
+        no-lock no-error.
+
+      if available S_Lieferant then
+        find first S_Adresse
+          where S_Adresse.Firma     = {firma/s_adres.fir '100':U}
+            and S_Adresse.AdressNr  = S_Lieferant.AdressNr
+          no-lock no-error.
+
+        if available S_Adresse then
+          assign
+            ttS_Report.LiefName = S_Adresse.Name1
+            .
+
+    end. /* if iLiefCount = 1 */
+  end. /* if iKundeCount = 1 */
+end. /* for each S_Artikel */
+
+/* display result */
+for each ttS_Report:
+  display
+    ttS_Report.Artikel
+    ttS_Report.ArtikelSpr format 'x(30)'
+    ttS_Report.Kunde
+    ttS_Report.KundeName  format 'x(30)'
+    ttS_Report.Lieferant
+    ttS_Report.LiefName   format 'x(30)'
+  with width 150 down.
+end.
+  
+/* ---------------------------------------------------------------------------- */
 
 
 
