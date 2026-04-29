@@ -1,1 +1,39 @@
-/*Price 1*/
+/* Price 1 */
+
+define variable cInputArt   as character label 'Artikel'   format 'x(20)' no-undo.
+define variable dInputPrice as decimal   label 'New Price'                no-undo.
+
+update
+  cInputArt dInputPrice with frame fPrice title 'Update Price'
+  .
+
+/* find history last price in Artikel and the price is still 'not expired' */
+find last S_ArtPreiseDatum
+  where S_ArtPreiseDatum.Firma        = {firma/sartprda.fir '100':U}
+    and S_ArtPreiseDatum.Artikel      = cInputArt
+    and S_ArtPreiseDatum.PreisGruppe  = 'GD'
+    and S_ArtPreiseDatum.gueltig_bis  = ?
+  exclusive-lock no-error.
+
+if available S_ArtPreiseDatum then
+do:
+  assign
+    S_ArtPreiseDatum.gueltig_bis = today - 1
+    .
+end. /* if available S_ArtPreiseDatum */
+
+/* create record new price */
+create S_ArtPreiseDatum.
+assign
+  S_ArtPreiseDatum.Firma        = {firma/sartprda.fir '100':U}
+  S_ArtPreiseDatum.Artikel      = cInputArt
+  S_ArtPreiseDatum.PreisGruppe  = 'GD'
+  S_ArtPreiseDatum.Preis        = string(dInputPrice)
+  S_ArtPreiseDatum.gueltig_ab   = today
+  S_ArtPreiseDatum.gueltig_bis  = ?
+  .
+
+release S_ArtPreiseDatum.
+
+message 'New Price Record Create'
+        view-as alert-box.
