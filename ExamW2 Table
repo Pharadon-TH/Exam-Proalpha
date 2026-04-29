@@ -1001,7 +1001,116 @@ output stream Table-16 close.
 message 'Table-16: Export complete'
         view-as alert-box.
 
+/* ---------------------------------------------------------------------------- */
 
+/* Table - Special */
+
+define variable cFile    as character label 'File Path' format 'x(50)' no-undo.
+define variable cData    as character extent 3                         no-undo.
+define variable iCreated as integer                                    no-undo.
+define variable iUpdated as integer                                    no-undo.
+define variable iTotal   as integer                                    no-undo.
+define stream sInput.
+
+/*update
+  cFile with frame fInput title 'Import Artikrl Tool'
+  .*/
+  
+assign
+  cFile = 'D:/message.txt':U
+  .  
+
+/* read file */
+input stream sInput from value(cFile).
+
+/* cross row title */
+import stream sInput unformatted cData[1].
+
+/* Read the information row by row */
+Import_Record:
+repeat:
+  import stream sInput delimiter ";"
+    cData[1]
+    cData[2]
+    cData[3]
+    .
+     
+  iTotal = iTotal + 1.
+
+  /* check Artikel have data in table proalpha */
+  find S_Artikel
+    where S_Artikel.Firma    = {firma/sartikel.fir '100':U}
+      and S_Artikel.Artikel  = cData[1]
+    no-lock no-error.
+
+    /* condition update */
+    if available S_Artikel then
+    do:
+      find S_ArtikelSpr
+        where S_ArtikelSpr.Firma    = {firma/sartikel.fir '100':U}
+          and S_ArtikelSpr.Artikel  = S_Artikel.Artikel
+        exclusive-lock no-error.
+
+      /* If there is, update the value */
+      if available S_ArtikelSpr then
+      do:
+        if S_ArtikelSpr.Bezeichnung[1] <> cData[2] or
+           S_ArtikelSpr.Bezeichnung[2] <> cData[3] then
+        do:
+          assign
+            S_ArtikelSpr.Bezeichnung[1] = cData[2]
+            S_ArtikelSpr.Bezeichnung[2] = cData[3]
+            iUpdated = iUpdated + 1
+            .
+        end. /* if available S_ArtikelSpr */
+      end. /* if available S_ArtikelSpr */
+
+      /* If table don't have it, build it again */
+      else
+      do:
+        create S_ArtikelSpr.
+        assign
+          S_ArtikelSpr.Firma          = {firma/sartikel.fir '100':U}
+          S_ArtikelSpr.Artikel        = S_Artikel.Artikel
+          S_ArtikelSpr.Bezeichnung[1] = cData[2]
+          S_ArtikelSpr.Bezeichnung[2] = cData[3]
+          .
+        iCreated = iCreated + 1.
+      end. /* else */
+
+
+    end. /* if available S_Artikel */
+    
+    /* condition create */
+    else
+    do:
+
+      /* create main table S_Artike*/
+      create S_Artikel.
+      assign
+        S_Artikel.Firma    = {firma/sartikel.fir '100':U}
+        S_Artikel.Artikel  = cData[1]
+        .
+
+      /* create S_ArtikelSpr */
+      create S_ArtikelSpr.
+        assign
+          S_ArtikelSpr.Firma          = {firma/sartikel.fir '100':U}
+          S_ArtikelSpr.Artikel        = S_Artikel.Artikel
+          S_ArtikelSpr.Bezeichnung[1] = cData[2]
+          S_ArtikelSpr.Bezeichnung[2] = cData[3]
+          .
+      iCreated = iCreated + 1.
+    end. /* else */
+
+end. /* repeat */
+
+input stream sInput close.
+message '--Import Sammary--'      skip
+        'Total Record: ' iTotal   skip
+        'Created     : ' iCreated skip
+        'Updated     : ' iUpdated
+        view-as alert-box.
 
 
 
