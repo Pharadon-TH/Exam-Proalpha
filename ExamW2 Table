@@ -783,8 +783,223 @@ for each E_ArtLief
       tDelivDate = tDelivDate + 1
     end. /* do while */
   end. /* else */
-  
 
+/* ---------------------------------------------------------------------------- */
+
+/* Table - 15 */
+
+define stream stDeliv.
+
+define variable tDelivDate as date      no-undo.
+define variable iWait      as integer   no-undo.
+define variable iAdded     as integer   no-undo.
+define variable cSupplier  as character no-undo.
+define variable cItemName  as character no-undo.
+define variable cUnitText  as character no-undo.
+
+output stream stDeliv to 'D:/Work/Table-15.csv':U.
+put    stream stDeliv unformatted 'Lieferant;Name1;Teil;Bezeichnung1;Lieferzeit;Lieferzeiteinheit;DeliveryDate;MinBestellMenge;Grundmenge' skip.
+
+/* loop check E_ArtLief */
+for each E_ArtLief
+  where E_ArtLief.Firma      = {firma/e_artli.fir '100':U}
+  no-lock:
+
+  assign
+    cSupplier  = 'N/A'
+    cItemName  = 'No Name'
+    cUnitText  = 'Unknown (' + E_ArtLief.Lieferzeiteinheit + ')'
+    .
+    
+  /* check id and name S_Lieferant */
+  find first S_Lieferant
+    where S_Lieferant.Firma      = {firma/sliefera.fir '100':U}
+      and S_Lieferant.Lieferant  = E_ArtLief.Lieferant
+    no-lock no-error.
+    
+  if available S_Lieferant then
+  do:
+    find first S_Adresse
+      where S_Adresse.Firma     = {firma/s_adres.fir '100':U}
+        and S_Adresse.AdressNr  = S_Lieferant.AdressNr
+      no-lock no-error.
+      
+    if available S_Adresse then
+      assign
+        cSupplier = S_Adresse.Name1
+        .
+  end. /* if available S_Lieferant */
+  
+  /* check description S_ArtikelSpr */
+  find first S_ArtikelSpr
+    where S_ArtikelSpr.Firma    = {firma/sartikel.fir '100':U}
+      and S_ArtikelSpr.Artikel  = E_ArtLief.Artikel
+    no-lock no-error.
+
+  if available S_ArtikelSpr then
+    assign
+      cItemName = S_ArtikelSpr.Bezeichnung[1]
+      .
+      
+  /* Calculataion Logic */
+  assign
+    tDelivDate = today
+    iWait      = E_ArtLief.Lieferzeit
+    .
+    
+  /* Condition KTG */
+  if E_ArtLief.Lieferzeiteinheit = '4' then
+  do:
+    assign
+      tDelivDate = today + iWait
+      cUnitText  = 'KTG'
+      .
+  end. /* if */
+  
+  /* Condition ATG */
+  else if E_ArtLief.Lieferzeiteinheit = '3' then
+  do:
+    assign
+      cUnitText = 'ATG'
+      iAdded    = 0
+    .
+      do while iAdded < iWait:
+        tDelivDate = tDelivDate + 1.
+
+        /* cross weekday 1 and 7 */
+        if weekday(tDelivDate) > 1 and weekday(tDelivDate) < 7 then
+          iAdded = iAdded + 1.
+      end. /* do while */
+  end. /* else if */
+  
+  /* export result */
+  export stream stDeliv delimiter ';'
+    E_ArtLief.Lieferant
+    cSupplier
+    E_ArtLief.Artikel
+    cItemName
+    E_ArtLief.Lieferzeit
+    cUnitText
+    string(tDelivDate, '99/99/9999')
+    E_ArtLief.MindestBestellmenge
+    E_ArtLief.Grundmenge
+    .
+
+end. /* for each E_ArtLief */
+
+output stream stDeliv close.
+
+message 'Export stDeliv Complete'
+        view-as alert-box.
+
+/* ---------------------------------------------------------------------------- */
+
+/* Table - 16 */
+
+define stream Table-16.
+
+output stream Table-16 to 'D:/Work/Table-16.csv'.
+put stream Table-16 unformatted 'firma;Artikel;Bezeichnung1;type K/L;Kunde No/Lieferant No;Name1':U skip.
+
+define variable cDesc as character no-undo.
+
+/* loop check S_Artikel */
+for each S_Artikel no-lock
+  where S_Artikel.Firma = {firma/sartikel.fir '100':U}:
+
+  /* condition relation both */
+  if can-find(first S_ArtKunde
+                where S_ArtKunde.Firma  = {firma/sartkund.fir '100':U}
+                  and S_ArtKunde.Artikel = S_Artikel.Artikel
+                no-lock)
+     and
+     can-find(first E_ArtLief
+                where E_ArtLief.Firma   = {firma/e_artli.fir '100':U}
+                  and E_ArtLief.Artikel = S_Artikel.Artikel
+                no-lock)
+  then
+  do:
+
+      /* check description S_ArtikelSpr */
+      find first S_ArtikelSpr
+        where S_ArtikelSpr.Firma   = {firma/sartikel.fir '100':U}
+          and S_ArtikelSpr.Artikel = S_Artikel.Artikel
+        no-lock no-error.
+
+      assign
+        cDesc = (if available S_ArtikelSpr then
+                   S_ArtikelSpr.Bezeichnung[1]
+                 else
+                   '')
+        .
+
+      /* Export Data Type K */
+      for each S_ArtKunde
+        where S_ArtKunde.Firma   = {firma/sartkund.fir '100':U}
+          and S_ArtKunde.Artikel = S_Artikel.Artikel
+        no-lock:
+
+        /* check id S_Kunde */
+        find first S_Kunde
+          where S_Kunde.Firma = {firma/s_kunde.fir '100':U}
+            and S_Kunde.Kunde = S_ArtKunde.Kunde
+          no-lock no-error.
+
+        /* check name S_Kunde */
+        if available S_Kunde then
+          find first S_Adresse
+            where S_Adresse.Firma   = {firma/s_adres.fir '100':U}
+              and S_Adresse.AdressNr = S_Kunde.AdressNr
+            no-lock no-error.
+
+        export stream Table-16 delimiter ';'
+          S_Artikel.Firma
+          S_Artikel.Artikel
+          cDesc
+          'K'
+          S_ArtKunde.Kunde
+          (if available S_Adresse then S_Adresse.Name1 else '') /* Error protection */
+          .
+        /* Restore Buffer for Security */
+        release S_Adresse.
+      end.
+
+      /* Export Data Type L */
+      for each E_ArtLief
+        where E_ArtLief.Firma   = {firma/e_artli.fir '100':U}
+          and E_ArtLief.Artikel = S_Artikel.Artikel
+        no-lock:
+
+        /* check id S_Lieferant */
+        find first S_Lieferant
+          where S_Lieferant.Firma      = {firma/sliefera.fir '100':U}
+            and S_Lieferant.Lieferant  = E_ArtLief.Lieferant
+          no-lock no-error.
+
+        /* check name S_Lieferant */
+        if available S_Lieferant then
+          find first S_Adresse
+            where S_Adresse.Firma    = {firma/s_adres.fir '100':U}
+              and S_Adresse.AdressNr = S_Lieferant.AdressNr
+            no-lock no-error.
+
+        export stream Table-16 delimiter ';'
+          S_Artikel.Firma
+          S_Artikel.Artikel
+          cDesc
+          'L'
+          E_ArtLief.Lieferant
+          (if available S_Adresse then S_Adresse.Name1 else '') /* Error protection */
+          .
+        /* Restore Buffer for Security */
+        release S_Adresse.
+      end. /* for each E_ArtLief */
+  end. /* if can-find */
+end. /* for each S_Artikel */
+
+output stream Table-16 close.
+message 'Table-16: Export complete'
+        view-as alert-box.
 
 
 
