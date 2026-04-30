@@ -1,39 +1,169 @@
 /* Price 1 */
 
-define variable cInputArt   as character label 'Artikel'   format 'x(20)' no-undo.
-define variable dInputPrice as decimal   label 'New Price'                no-undo.
+define variable cInputArt   as character label "Artikel"   format "x(20)" no-undo.
+define variable dInputPrice as decimal   label "New Price"                no-undo.
 
-update
-  cInputArt dInputPrice with frame fPrice title 'Update Price'
-  .
+update cInputArt dInputPrice with frame fPrice title "Update Price".
+
+/* find data S_Artikel */
+find first S_Artikel
+    where S_Artikel.Firma   = {firma/sartikel.fir '100':U}
+      and S_Artikel.Artikel = cInputArt
+    no-lock no-error.
 
 /* find history last price in Artikel and the price is still 'not expired' */
-find last S_ArtPreiseDatum
-  where S_ArtPreiseDatum.Firma        = {firma/sartprda.fir '100':U}
-    and S_ArtPreiseDatum.Artikel      = cInputArt
-    and S_ArtPreiseDatum.PreisGruppe  = 'GD'
-    and S_ArtPreiseDatum.gueltig_bis  = ?
-  exclusive-lock no-error.
-
-if available S_ArtPreiseDatum then
+if available S_Artikel then
 do:
-  assign
-    S_ArtPreiseDatum.gueltig_bis = today - 1
-    .
-end. /* if available S_ArtPreiseDatum */
+  find last S_ArtPreiseDatum
+    where S_ArtPreiseDatum.Firma       = {firma/sartPreisGruppeprda.fir '100':U}
+      and S_ArtPreiseDatum.Artikel     = cInputArt
+      and S_ArtPreiseDatum.PreisGruppe = "GD"
+    exclusive-lock no-error.
 
-/* create record new price */
-create S_ArtPreiseDatum.
-assign
-  S_ArtPreiseDatum.Firma        = {firma/sartprda.fir '100':U}
-  S_ArtPreiseDatum.Artikel      = cInputArt
-  S_ArtPreiseDatum.PreisGruppe  = 'GD'
-  S_ArtPreiseDatum.Preis        = string(dInputPrice)
-  S_ArtPreiseDatum.gueltig_ab   = today
-  S_ArtPreiseDatum.gueltig_bis  = ?
-  .
+  /* find Preis in S_ArtPreiseStaffel */
+  if available S_ArtPreiseDatum then
+  do:
+    find last S_ArtPreiseStaffel
+
+      where S_ArtPreiseStaffel.Firma         = {firma/sartprda.fir '100':U}
+        and S_ArtPreiseStaffel.Artikel       = cInputArt
+        and S_ArtPreiseStaffel.PreisGruppe   = "GD"
+      exclusive-lock no-error.
+  
+  
+    if available S_ArtPreiseStaffel then
+    assign
+      S_ArtPreiseDatum.gueltig_bis   = today - 1
+      S_ArtPreiseStaffel.gueltig_bis = today - 1
+      .
+  end. /* if available S_ArtPreiseDatum */
+
+
+  create S_ArtPreiseDatum.
+  assign
+    S_ArtPreiseDatum.Firma       = {firma/sartprda.fir '100':U}
+    S_ArtPreiseDatum.Artikel     = cInputArt
+    S_ArtPreiseDatum.PreisGruppe = "GD"
+    S_ArtPreiseDatum.gueltig_ab  = today
+    .
+    
+  create S_ArtPreiseStaffel.
+  assign
+    S_ArtPreiseStaffel.Firma       = {firma/sartprda.fir '100':U}
+    S_ArtPreiseStaffel.Artikel     = cInputArt
+    S_ArtPreiseStaffel.PreisGruppe = "GD"
+    S_ArtPreiseStaffel.Preis       = dInputPrice
+    S_ArtPreiseStaffel.gueltig_ab  = today
+    .
+    
+end.
 
 release S_ArtPreiseDatum.
 
-message 'New Price Record Create'
-        view-as alert-box.
+message "Price Updated Successfully" skip(1)
+        "Artikel: " cInputArt skip
+        "New Price: " dInputPrice
+        view-as alert-box information title "Success".
+
+/* ---------------------------------------------------------------------------- */
+
+/* Price 2 */
+
+define variable dMinCost  as decimal   no-undo.
+define variable dMaxSell  as decimal   no-undo.
+define variable cSuppName as character no-undo.
+define variable cCustName as character no-undo.
+define variable dProfit   as decimal   no-undo.
+
+/* loop check artikel */
+for each S_Artikel
+  where S_Artikel.Firma    = {firma/sartikel.fir '100':U}
+  no-lock:
+
+  assign
+    dMinCost  = 99999999.99
+    dMaxSell  = 0
+    cSuppName = ''
+    cCustName = ''
+    .
+
+  /* loop check min cost */
+  for each E_ArtLiefStaffel
+    where E_ArtLiefStaffel.Firma         = {firma/e_artli.fir '100':U}
+      and E_ArtLiefStaffel.Artikel       = S_Artikel.Artikel
+    no-lock:
+
+    /* give new min price */
+    if E_ArtLiefStaffel.Preis < dMinCost then
+    do:
+    assign
+      dMinCost = E_ArtLiefStaffel.Preis
+      .
+
+      /* check neam S_Lieferant in table E_ArtLiefstaffel */
+      find first S_Lieferant
+        where S_Lieferant.Firma      = {firma/sliefera.fir '100':U}
+          and S_Lieferant.Lieferant  = E_ArtLiefStaffel.Lieferant
+        no-lock no-error.
+
+      if available S_Lieferant then
+      do:
+        find first S_Adresse
+          where S_Adresse.Firma     = {firma/s_adres.fir '100':U}
+            and S_Adresse.AdressNr  = S_Lieferant.AdressNr
+          no-lock no-error.
+
+        if available S_Adresse then
+          cSuppName = S_Adresse.Name1.
+
+      end. /*  if available S_Lieferant */
+    end. /* if E_ArtLiefstaffel.Preis < dMidCost */
+  end. /* for each E_ArtLiefstaffel */
+
+  /* loop check max sell */
+  for each S_ArtKundeStaffel
+    where S_ArtKundeStaffel.Firma         = {firma/sartkund.fir '100':U}
+      and S_ArtKundeStaffel.Artikel       = S_Artikel.Artikel
+    no-lock:
+
+    /* give new max sell */
+    if S_ArtKundeStaffel.Preis > dMaxSell then
+    do:
+    assign
+      dMaxSell = S_ArtKundeStaffel.Preis
+      .
+
+      /* check neam S_Kunde in table E_ArtLiefstaffel */
+      find first S_Kunde
+        where S_Kunde.Firma  = {firma/s_kunde.fir '100':U}
+          and S_Kunde.Kunde  = S_ArtKundeStaffel.Kunde
+        no-lock no-error.
+
+      if available S_Kunde then
+      do:
+        find first S_Adresse
+          where S_Adresse.Firma     = {firma/s_adres.fir '100':U}
+            and S_Adresse.AdressNr  = S_Kunde.AdressNr
+          no-lock no-error.
+
+        if available S_Adresse then
+          cCustName = S_Adresse.Name1.
+
+      end. /* if available S_Kunde */
+    end. /* if S_ArtKundeStaffel.Preis > dMaxSell */
+  end. /* for each S_ArtKundeStaffel */
+
+  dProfit = dMaxSell - dMinCost.
+
+  if dMinCost < 99999999.99 and dMaxSell > 0 then
+  do:
+  display
+    S_Artikel.Artikel     column-label 'Artikel'
+    cSuppName             column-label 'Supplier' format 'x(30)'
+    dMinCost              column-label 'Cost'
+    cCustName             column-label 'Customer' format 'x(20)'
+    dMaxSell              column-label 'Selling'
+    dProfit               column-label 'Profit'
+    with frame fPriceAnalysis with width 150 20 down.
+  end. /* if dMidCost < 99999999.99 and dMaxSell > 0 */
+end. /* for each S_Artikel */
