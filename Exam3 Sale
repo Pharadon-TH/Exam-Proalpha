@@ -1,0 +1,115 @@
+/*------------------ Sale 1 ------------------*/
+
+/*
+Display all documents in all document type in following order (Angebot,Auftrag,Lieferschein,Rechnung,Gutschrift)
+Display fields: the document type (BelegArt), the document number (BelegNummer) , and the reference number (Refer-enzNr).
+*/
+   
+for each V_BelegKopf
+  where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+  no-lock
+  by lookup(V_BelegKopf.BelegArt, 'A,U,L,R,G,VUR,VFP,VUD,VUA'):
+
+  display
+    V_BelegKopf.BelegArt
+    V_BelegKopf.BelegNummer
+    V_BelegKopf.ReferenzNr
+    .
+end.
+
+
+/*------------------ Sale 2 ------------------*/
+
+/*
+Display all Artikel position for All open document that type = Rechnung
+Display fields:  document type (BelegArt), document number (Belegnummer) the positons Number (PositionsNr), and the document items (Artikel).
+*/
+
+for each V_BelegKopf
+  where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and V_BelegKopf.BelegArt     = 'R'
+  no-lock:
+
+  for each V_BelegPos
+     where V_BelegPos.Firma      = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+      and V_BelegPos.BelegArt    = V_BelegKopf.BelegArt
+      and V_BelegPos.ReferenzNr  = V_BelegKopf.ReferenzNr
+    no-lock
+    on error undo, throw:
+
+  display
+    V_BelegPos.BelegArt
+    V_BelegPos.BelegNummer
+    V_BelegPos.PositionsNr
+    V_BelegPos.Artikel
+    .
+  end.
+end.
+  
+/*------------------ Sale 3 ------------------*/
+
+/*
+Display all Artikel position for all document that type = Auftrag and show the price of each Artikel
+Display fields:  the document type (BelegArt), the positons Number (PositionsNr), the document items (Artikel), and the price of each items (Einzelpreis)
+*/
+
+for each V_BelegKopf
+  where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and V_BelegKopf.BelegArt     = 'U'
+  no-lock:
+
+  for each V_BelegPos
+    where V_BelegPos.Firma        = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+      and V_BelegPos.BelegArt     = V_BelegKopf.BelegArt
+      and V_BelegPos.ReferenzNr   = V_BelegKopf.ReferenzNr
+      and V_BelegPos.PositionsNr  = 0
+    no-lock:
+  
+    display
+      V_BelegPos.BelegArt
+      V_BelegPos.PositionsNr
+      V_BelegPos.Artikel
+      V_BelegPos.Einzelpreis
+     .
+  end.
+end.
+
+/*------------------ Sale 4 ------------------*/
+
+/*
+Display all Artikel positions for all documents of the type Auftrag, calculate the total price for each position, and dis-play the total for each document.
+Example:
+BelegNr 10200419
+position 1 -> Einzelpreis: 47.53 ,menge: 242
+                        totalPrice = 47.53 * 242 = 11502.26
+position 2 -> Einzelpreis: 45.59 ,menge: 193
+                        totalPrice = 11502.26 + (45.59*193) = 20301.13
+*/
+
+define variable dTotalPrice as decimal format '-zzz,zzz,zz9.99' no-undo.
+
+for each V_BelegKopf
+  where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and V_BelegKopf.BelegArt    = 'U'
+  no-lock:
+
+
+  for each V_BelegPos
+    where V_BelegPos.Firma        = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+      and V_BelegPos.BelegArt     = V_BelegKopf.BelegArt
+      and V_BelegPos.ReferenzNr   = V_BelegKopf.ReferenzNr
+    no-lock:
+
+    dTotalPrice = (V_BelegPos.Einzelpreis * V_BelegPos.Menge) + dTotalPrice.
+
+    display
+      V_BelegPos.BelegNummer
+      V_BelegPos.BelegArt
+      V_BelegPos.PositionsNr
+      V_BelegPos.Artikel
+      V_BelegPos.Einzelpreis
+      V_BelegPos.Menge
+      dTotalPrice
+      with frame fTotal width 120 down.
+  end.
+end.
