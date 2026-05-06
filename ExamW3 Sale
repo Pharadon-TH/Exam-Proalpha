@@ -7,8 +7,9 @@ Display fields: the document type (BelegArt), the document number (BelegNummer) 
    
 for each V_BelegKopf
   where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and lookup(V_BelegKopf.BelegArt, 'A,U,L,R,G') > 0
   no-lock
-  by lookup(V_BelegKopf.BelegArt, 'A,U,L,R,G,VUR,VFP,VUD,VUA'):
+  by lookup(V_BelegKopf.BelegArt, 'A,U,L,R,G'):
 
   display
     V_BelegKopf.BelegArt
@@ -21,13 +22,14 @@ end.
 /*------------------ Sale 2 ------------------*/
 
 /*
-Display all Artikel position for All open document that type = Rechnung
+Display all Artikel position for All open documenAktiont that type = Rechnung
 Display fields:  document type (BelegArt), document number (Belegnummer) the positons Number (PositionsNr), and the document items (Artikel).
 */
 
 for each V_BelegKopf
   where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
-    and V_BelegKopf.BelegArt     = 'R'
+    and V_BelegKopf.BelegArt    = 'R'
+    and V_BelegKopf.offen        = true
   no-lock:
 
   for each V_BelegPos
@@ -85,6 +87,7 @@ position 1 -> Einzelpreis: 47.53 ,menge: 242
 position 2 -> Einzelpreis: 45.59 ,menge: 193
                         totalPrice = 11502.26 + (45.59*193) = 20301.13
 */
+current-window:width = 120.
 
 define variable dTotalPrice as decimal format '-zzz,zzz,zz9.99' no-undo.
 
@@ -111,5 +114,71 @@ for each V_BelegKopf
       V_BelegPos.Menge
       dTotalPrice
       with frame fTotal width 120 down.
+  end.
+end.
+
+
+/*------------------ Sale 5 ------------------*/
+
+/*
+All Angebot positions are adopted to Auftrag
+adopted = This document refers to previous documents, such as type U. If it refers to document A, it means adoption has happened.
+Display: KundeNr,Name1,Belegnummer(A),Belegnummer(U),Position,Artikel,ArtikelBez1, adoption (yes/no)
+Adoption: yes = this position adopt to Auftrag, no = this position doesn’t adoption
+*/
+
+current-window:width = 150.
+
+define buffer bV_BelegPos  for V_BelegPos.
+
+for each V_BelegKopf
+  where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+   and  V_BelegKopf.BelegArt    = 'A'
+  no-lock:
+
+  for each V_BelegPos
+    where V_BelegPos.Firma        = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+      and V_BelegPos.BelegArt     = V_BelegKopf.BelegArt
+      and V_BelegPos.ReferenzNr   = V_BelegKopf.ReferenzNr
+    no-lock:
+
+      find first bV_BelegPos
+        where bV_BelegPos.Firma            = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+          and bV_BelegPos.BelegArt         = 'U'
+          and bV_BelegPos.Herk_BelegArt    = V_BelegPos.BelegArt
+          and bV_BelegPos.Herk_ReferenzNr  = V_BelegPos.ReferenzNr
+          and bV_BelegPos.Herk_PositionsNr = V_BelegPos.PositionsNr
+        no-lock no-error.
+
+      find S_Kunde
+        where S_Kunde.Firma  = {firma/s_kunde.fir pACConnectionSvc:prpcCompany}
+          and S_Kunde.Kunde  = V_BelegKopf.Kunde
+        no-lock no-error.
+
+      if available S_Kunde then
+      do:
+        find S_Adresse
+          where S_Adresse.Firma     = {firma/s_adres.fir }
+            and S_Adresse.AdressNr  = S_Kunde.AdressNr
+          no-lock no-error.
+      end. /* if available S_Kunde */
+
+      find S_ArtikelSpr
+        where S_ArtikelSpr.Firma    = {firma/sartikel.fir pACConnectionSvc:prpcCompany}
+          and S_ArtikelSpr.Artikel  = V_BelegPos.Artikel
+          and S_ArtikelSpr.Sprache  = 'D'
+        no-lock no-error.
+
+
+    display
+      (string(S_Kunde.Kunde))                                                  label 'Kunde'
+      (if available S_Adresse then S_Adresse.Name1 else '')                    label 'Name'
+      (string(V_BelegPos.BelegNummer))                                         label 'BelegNr(A)'
+      (if available bV_BelegPos then string(bV_BelegPos.BelegNummer) else '-') label 'BelegNr(U)'
+      (if available bV_BelegPos then 'yes' else 'no')                          label 'Adoption'
+      (string(V_BelegPos.PositionsNr))                                         label 'Pos'
+      (string(V_BelegPos.Artikel))                                             label 'Teil'
+      (if available S_ArtikelSpr then S_ArtikelSpr.Bezeichnung[1] else '')     label 'Bezeichnung' format
+      with width 150 down.
   end.
 end.
