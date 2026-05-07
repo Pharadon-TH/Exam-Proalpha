@@ -4,12 +4,12 @@
 Display all documents in all document type in following order (Angebot,Auftrag,Lieferschein,Rechnung,Gutschrift)
 Display fields: the document type (BelegArt), the document number (BelegNummer) , and the reference number (Refer-enzNr).
 */
-   
+
 for each V_BelegKopf
   where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
     and lookup(V_BelegKopf.BelegArt, 'A,U,L,R,G') > 0
   no-lock
-  by lookup(V_BelegKopf.BelegArt, 'A,U,L,R,G'):
+  break by lookup(V_BelegKopf.BelegArt, 'A,U,L,R,G'):
 
   display
     V_BelegKopf.BelegArt
@@ -18,6 +18,8 @@ for each V_BelegKopf
     .
 end.
 
+/* condition VUP VU*/
+/* condition entry in list*/
 
 /*------------------ Sale 2 ------------------*/
 
@@ -29,13 +31,14 @@ Display fields:  document type (BelegArt), document number (Belegnummer) the pos
 for each V_BelegKopf
   where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
     and V_BelegKopf.BelegArt    = 'R'
-    and V_BelegKopf.offen        = true
+    and V_BelegKopf.offen       = true
   no-lock:
 
   for each V_BelegPos
      where V_BelegPos.Firma      = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
       and V_BelegPos.BelegArt    = V_BelegKopf.BelegArt
       and V_BelegPos.ReferenzNr  = V_BelegKopf.ReferenzNr
+      and V_BelegPos.offen       = true
     no-lock
     on error undo, throw:
 
@@ -47,7 +50,7 @@ for each V_BelegKopf
     .
   end.
 end.
-  
+
 /*------------------ Sale 3 ------------------*/
 
 /*
@@ -56,7 +59,7 @@ Display fields:  the document type (BelegArt), the positons Number (PositionsNr)
 */
 
 for each V_BelegKopf
-  where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+  where V_BelegKopf.Firma        = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
     and V_BelegKopf.BelegArt     = 'U'
   no-lock:
 
@@ -64,9 +67,9 @@ for each V_BelegKopf
     where V_BelegPos.Firma        = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
       and V_BelegPos.BelegArt     = V_BelegKopf.BelegArt
       and V_BelegPos.ReferenzNr   = V_BelegKopf.ReferenzNr
-      and V_BelegPos.PositionsNr  = 0
+      and V_BelegPos.LfdNr_SR     = 0
     no-lock:
-  
+
     display
       V_BelegPos.BelegArt
       V_BelegPos.PositionsNr
@@ -93,14 +96,18 @@ define variable dTotalPrice as decimal format '-zzz,zzz,zz9.99' no-undo.
 
 for each V_BelegKopf
   where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
-    and V_BelegKopf.BelegArt    = 'U'
+    and V_BelegKopf.BelegArt    = 'U':U
   no-lock:
-
+  
+  assign
+    dTotalPrice = 0
+    .
 
   for each V_BelegPos
     where V_BelegPos.Firma        = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
       and V_BelegPos.BelegArt     = V_BelegKopf.BelegArt
       and V_BelegPos.ReferenzNr   = V_BelegKopf.ReferenzNr
+      and V_BelegPos.LfdNr_SR     = 0
     no-lock:
 
     dTotalPrice = (V_BelegPos.Einzelpreis * V_BelegPos.Menge) + dTotalPrice.
@@ -127,58 +134,474 @@ Display: KundeNr,Name1,Belegnummer(A),Belegnummer(U),Position,Artikel,ArtikelBez
 Adoption: yes = this position adopt to Auftrag, no = this position doesn’t adoption
 */
 
-current-window:width = 150.
+current-window:width = 180.
 
-define buffer bV_BelegPos  for V_BelegPos.
+define buffer bV_BelegPos for V_BelegPos.
 
+define variable cBelegA      as character format "x(15)" no-undo.
+define variable cBelegU      as character format "x(15)" no-undo.
+define variable cAdoption    as character format "x(3)"  no-undo.
+
+/* loop Header A */
 for each V_BelegKopf
-  where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
-   and  V_BelegKopf.BelegArt    = 'A'
+  where V_BelegKopf.Firma    = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and V_BelegKopf.BelegArt = 'A':U
+  no-lock:
+    
+  /* loop Poosition and check Artikel */
+  for each V_BelegPos
+    where V_BelegPos.Firma      = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+      and V_BelegPos.BelegArt   = V_BelegKopf.BelegArt
+      and V_BelegPos.ReferenzNr = V_BelegKopf.ReferenzNr
+    no-lock:
+
+    /* reset Position and check Artikel */
+    assign
+      cBelegA      = string(V_BelegPos.BelegNummer)
+      cBelegU      = '-':U
+      cAdoption    = 'no':U
+      .
+
+    /* check Adoption Connect with U */
+    find first bV_BelegPos
+      where bV_BelegPos.Firma            = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+        and bV_BelegPos.BelegArt         = 'U':U
+        and bV_BelegPos.Herk_BelegArt    = V_BelegPos.BelegArt
+        and bV_BelegPos.Herk_ReferenzNr  = V_BelegPos.ReferenzNr
+        and bV_BelegPos.Herk_PositionsNr = V_BelegPos.PositionsNr
+      no-lock no-error.
+
+    if available bV_BelegPos then
+      assign
+        cBelegU   = string(bV_BelegPos.BelegNummer)
+        cAdoption = 'yes':U
+        .
+        
+    /* check id and name Kunde */
+    find S_Kunde
+      where S_Kunde.Firma = {firma/s_kunde.fir pACConnectionSvc:prpcCompany}
+        and S_Kunde.Kunde = V_BelegKopf.Kunde
+      no-lock no-error.
+
+    if available S_Kunde then
+    do:
+      find S_Adresse
+        where S_Adresse.Firma    = {firma/s_adres.fir pACConnectionSvc:prpcCompany}
+          and S_Adresse.AdressNr = S_Kunde.AdressNr
+        no-lock no-error.
+
+      if available S_Adresse then
+          S_Adresse.Name1.
+          
+    end. /* if available S_Kunde */
+
+    /* check description S_ArtikelSpr */
+    find S_ArtikelSpr
+      where S_ArtikelSpr.Firma   = {firma/sartikel.fir pACConnectionSvc:prpcCompany}
+        and S_ArtikelSpr.Artikel = V_BelegPos.Artikel
+        and S_ArtikelSpr.Sprache = 'D':U
+      no-lock no-error.
+
+    if available S_ArtikelSpr then
+      S_ArtikelSpr.Bezeichnung[1].
+
+    /* display Result */
+    display
+      V_BelegKopf.Kunde           column-label 'Kunde':U
+      S_Adresse.Name1             column-label 'Name':U
+      cBelegA                     column-label 'BelegNr(A)':U
+      cBelegU                     column-label 'BelegNr(U)':U
+      cAdoption                   column-label 'Adoption':U
+      V_BelegPos.PositionsNr      column-label 'Pos':U
+      V_BelegPos.Artikel          column-label 'Teil':U
+      S_ArtikelSpr.Bezeichnung[1] column-label 'Bezeichnung':U
+      with width 180 down.
+
+  end. /* for each V_BelegPos */
+end. /* for each V_BelegKopf */
+
+/*------------------ Sale 6 ------------------*/
+
+/*
+All Lieferschein positions are adopted from Auftrag
+Display: KundeNr,Name1,Belegnummer(L),Belegnummer(U),Position,Artikel,ArtikelBez1
+*/
+
+current-window:width = 170.
+
+define buffer bV_BelegPos for V_BelegPos.
+
+define variable cBelegL      as character format "x(15)" no-undo.
+define variable cBelegU      as character format "x(15)" no-undo.
+
+/* loop Header L */
+for each V_BelegKopf
+  where V_BelegKopf.Firma    = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and V_BelegKopf.BelegArt = 'L':U
   no-lock:
 
+  /* loop Poosition and check Artikel */
+  for each V_BelegPos
+    where V_BelegPos.Firma      = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+      and V_BelegPos.BelegArt   = V_BelegKopf.BelegArt
+      and V_BelegPos.ReferenzNr = V_BelegKopf.ReferenzNr
+    no-lock:
+
+    /* reset Poosition and check Artikel */
+    assign
+      cBelegL      = string(V_BelegPos.BelegNummer)
+      cBelegU      = '-':U
+      .
+
+    /* check Connect with U */
+    find first bV_BelegPos
+      where bV_BelegPos.Firma            = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+        and bV_BelegPos.BelegArt         = 'U':U
+        and bV_BelegPos.ReferenzNr       = V_BelegPos.Herk_ReferenzNr
+        and bV_BelegPos.PositionsNr      = V_BelegPos.Herk_PositionsNr
+        and bV_BelegPos.Artikel          = V_BelegPos.Artikel
+      no-lock no-error.
+
+    if available bV_BelegPos then
+      assign
+        cBelegU   = string(bV_BelegPos.BelegNummer)
+        .
+        
+    /* check id and name Kunde */
+    find S_Kunde
+      where S_Kunde.Firma = {firma/s_kunde.fir pACConnectionSvc:prpcCompany}
+        and S_Kunde.Kunde = V_BelegKopf.Kunde
+      no-lock no-error.
+
+    if available S_Kunde then
+    do:
+      find S_Adresse
+        where S_Adresse.Firma    = {firma/s_adres.fir pACConnectionSvc:prpcCompany}
+          and S_Adresse.AdressNr = S_Kunde.AdressNr
+        no-lock no-error.
+
+      if available S_Adresse then
+        S_Adresse.Name1.
+        
+    end. /* if available S_Kunde */
+
+    /* check description S_ArtikelSpr */
+    find S_ArtikelSpr
+      where S_ArtikelSpr.Firma   = {firma/sartikel.fir pACConnectionSvc:prpcCompany}
+        and S_ArtikelSpr.Artikel = V_BelegPos.Artikel
+        and S_ArtikelSpr.Sprache = 'D':U
+      no-lock no-error.
+
+    if available S_ArtikelSpr then
+      S_ArtikelSpr.Bezeichnung[1].
+
+    /* display Result */
+    display
+      V_BelegKopf.Kunde           column-label 'Kunde':U
+      S_Adresse.Name1             column-label 'Name':U
+      cBelegL                     column-label 'BelegNr(L)':U
+      cBelegU                     column-label 'BelegNr(U)':U
+      V_BelegPos.PositionsNr      column-label 'Pos':U
+      V_BelegPos.Artikel          column-label 'Teil':U
+      S_ArtikelSpr.Bezeichnung[1] column-label 'Bezeichnung':U
+      with width 170 down.
+
+  end. /* for each V_BelegPos */
+end. /* for each V_BelegKopf */
+
+/*------------------ Sale 7 ------------------*/
+        
+/*
+All Auftrag position is adopted from Rechnung
+Display: KundeNr,Name1,Belegnummer(U),Belegnummer(L),Belegnummer(R),Position,Artikel,ArtikelBez1, adoption (L),
+adoption (R)
+Adoption: yes = this position adoption, no = this position doesn’t adoption
+*/
+
+current-window:width = 200 .
+
+define buffer bV_BelegPosL for V_BelegPos.
+define buffer bV_BelegPosR for V_BelegPos.
+
+define variable cBelegU      as character format "x(12)" no-undo.
+define variable cBelegL      as character format "x(12)" no-undo.
+define variable cBelegR      as character format "x(12)" no-undo.
+define variable cAdoptionL   as character format "x(3)"  no-undo.
+define variable cAdoptionR   as character format "x(3)"  no-undo.
+
+/* loop Header U */
+for each V_BelegKopf
+  where V_BelegKopf.Firma    = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and V_BelegKopf.BelegArt = 'U'
+  no-lock:
+  
+  /* loop Poosition and check Artikel */
+  for each V_BelegPos
+    where V_BelegPos.Firma      = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+      and V_BelegPos.BelegArt   = V_BelegKopf.BelegArt
+      and V_BelegPos.ReferenzNr = V_BelegKopf.ReferenzNr
+    no-lock:
+
+    /* reset Poosition and check Artikel */
+    assign
+      cBelegU      = string(V_BelegPos.BelegNummer)
+      cBelegL      = '-'
+      cBelegR      = '-'
+      cAdoptionL   = 'no':U
+      cAdoptionR   = 'no':U
+      .
+
+    /* check Adoption Connect with L */
+    find first bV_BelegPosL
+      where bV_BelegPosL.Firma            = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+        and bV_BelegPosL.BelegArt         = 'L':U
+        and bV_BelegPosL.Herk_BelegArt    = 'U':U
+        and bV_BelegPosL.Herk_ReferenzNr  = V_BelegPos.ReferenzNr
+        and bV_BelegPosL.Herk_PositionsNr = V_BelegPos.PositionsNr
+      no-lock no-error.
+
+    if available bV_BelegPosL then
+      assign
+        cBelegL    = string(bV_BelegPosL.BelegNummer)
+        cAdoptionL = 'yes':U
+        .
+
+    /* check Adoption Connect with R */
+    /* case 1: condition drawn directly from U */
+    find first bV_BelegPosR
+      where bV_BelegPosR.Firma            = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+        and bV_BelegPosR.BelegArt         = 'R':U
+        and bV_BelegPosR.Herk_BelegArt    = 'U':U
+        and bV_BelegPosR.Herk_ReferenzNr  = V_BelegPos.ReferenzNr
+        and bV_BelegPosR.Herk_PositionsNr = V_BelegPos.PositionsNr
+      no-lock no-error.
+
+    if available bV_BelegPosR then
+      assign
+        cBelegR    = string(bV_BelegPosR.BelegNummer)
+        cAdoptionR = 'yes':U
+        .
+        
+    else
+    do:
+      /* case 2: condition drawn directly from L */
+      find first bV_BelegPosR
+        where bV_BelegPosR.Firma            = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+          and bV_BelegPosR.BelegArt         = 'R':U
+          and bV_BelegPosR.Herk_BelegArt    = 'L':U
+          and bV_BelegPosR.Herk_ReferenzNr  = bV_BelegPosL.ReferenzNr
+          and bV_BelegPosR.Herk_PositionsNr = bV_BelegPosL.PositionsNr
+        no-lock no-error.
+
+      if available bV_BelegPosR then
+        assign
+          cBelegR    = string(bV_BelegPosR.BelegNummer)
+          cAdoptionR = 'yes':U
+          .
+    end.
+    
+    /* check id and name Kunde */
+    find S_Kunde
+      where S_Kunde.Firma = {firma/s_kunde.fir pACConnectionSvc:prpcCompany}
+        and S_Kunde.Kunde = V_BelegKopf.Kunde
+      no-lock no-error.
+
+    if available S_Kunde then
+    do:
+      find S_Adresse
+        where S_Adresse.Firma    = {firma/s_adres.fir pACConnectionSvc:prpcCompany}
+          and S_Adresse.AdressNr = S_Kunde.AdressNr
+        no-lock no-error.
+
+      if available S_Adresse then
+        S_Adresse.Name1.
+        
+    end. /* if available S_Kunde */
+        
+    /* check description S_ArtikelSpr */
+    find S_ArtikelSpr
+      where S_ArtikelSpr.Firma   = {firma/sartikel.fir pACConnectionSvc:prpcCompany}
+        and S_ArtikelSpr.Artikel = V_BelegPos.Artikel
+        and S_ArtikelSpr.Sprache = 'D':U
+      no-lock no-error.
+
+    if available S_ArtikelSpr then
+        S_ArtikelSpr.Bezeichnung[1].
+
+    /* display Result */
+    display
+      V_BelegKopf.Kunde           column-label 'Kunde':U
+      S_Adresse.Name1             column-label 'Name':U
+      cBelegU                     column-label 'BelegNr(U)':U
+      cBelegL                     column-label 'BelegNr(L)':U
+      cAdoptionL                  column-label 'Adoption(L)':U
+      cBelegR                     column-label 'BelegNr(R)':U
+      cAdoptionR                  column-label 'Adoption(R)':U
+      V_BelegPos.PositionsNr      column-label 'Pos':U
+      V_BelegPos.Artikel          column-label 'Teil':U
+      S_ArtikelSpr.Bezeichnung[1] column-label 'Bezeichnung':U
+      with width 200 down.
+
+  end. /* for each V_BelegPos */
+end. /* for each V_BelegKopf */
+
+
+/*------------------ Sale 8 ------------------*/
+
+/*
+Find a redundant artikel position in the same BelegNummer for all document in document type = Angebot, Auftrag, Lieferschien and rechnung
+Display fields: document number (BelegNummer) and the positions of the redundant item (artikel).
+It should display both the original artikel position and the redundant artikel position.
+For example, the document type angebot no. 10100136 contains five elements, two of which have the same artikel.
+We should show all the positions, such as 4,5
+*/
+
+define temp-table ttRedundant no-undo
+  field BelegArt    like V_BelegKopf.BelegArt
+  field BelegNummer like V_BelegKopf.BelegNummer
+  field Artikel     like V_BelegPos.Artikel
+  field Positions   as character format 'x(30)' label 'PositionNr'
+  field ItemCount   as integer
+
+  index main is unique
+  BelegArt
+  Artikel
+  BelegNummer
+  .
+
+/* loop check Header A,U,L,R */
+for each V_BelegKopf
+  where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and lookup(V_BelegKopf.BelegArt, 'A,U,L,R') > 0
+  no-lock:
+
+  /* loop check all Position*/
+  for each V_BelegPos
+    where V_BelegPos.Firma        = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+      and V_BelegPos.BelegArt     = V_BelegKopf.BelegArt
+      and V_BelegPos.ReferenzNr   = V_BelegKopf.ReferenzNr
+      and V_BelegPos.WertPosition <> yes
+    no-lock:
+
+    /* check table have data Artikel */
+    find first ttRedundant
+      where ttRedundant.BelegArt    = V_BelegPos.BelegArt
+        and ttRedundant.BelegNummer = V_BelegPos.BelegNummer
+        and ttRedundant.Artikel     = V_BelegPos.Artikel
+      no-lock no-error.
+
+    /* if not have table */
+    if not available ttRedundant then
+    do:
+      create ttRedundant.
+      assign
+        ttRedundant.BelegArt    = V_BelegPos.BelegArt
+        ttRedundant.BelegNummer = V_BelegPos.BelegNummer
+        ttRedundant.Artikel     = V_BelegPos.Artikel
+        ttRedundant.Positions   = string(V_BelegPos.PositionsNr)
+        ttRedundant.ItemCount   = 1
+        .
+    end. /* if not available ttRedundant */
+
+    /* if have table */
+    else
+      assign
+        ttRedundant.Positions = ttRedundant.Positions + ',' + string(V_BelegPos.PositionsNr)
+        ttRedundant.ItemCount = ttRedundant.ItemCount + 1
+        .
+
+  end. /* for each V_BelegPos */
+end. /* for each V_BelegKopf */
+
+/* condition ItemCount > 1 and display */
+for each ttRedundant
+  break by ttRedundant.BelegNummer:
+  if ttRedundant.ItemCount > 1 then
+    display
+      ttRedundant.BelegNummer
+      ttRedundant.Artikel
+      ttRedundant.Positions
+      with width 100 down.
+
+end. /* for each ttRedundant */
+
+/*------------------ Sale 9 ------------------*/
+
+/*
+Calculate total price (Menge * Einzelpreis) for each document where Belegart = U and group by month and year
+You can look for the date of each document in the field belegDatum
+*/
+
+define stream stSale9.
+
+output stream stSale9 to 'D:/Work/Sale-9.csv'.
+put stream stSale9 unformatted 'mount;year;mounth;yearTotal' skip.
+
+define temp-table ttMonthlySales no-undo
+  field iYear        as integer
+  field iMonth       as integer
+  field dMonthTot    as decimal
+
+  index mian is primary
+    iYear
+    iMonth
+    .
+
+define variable dYearAcc  as decimal no-undo.
+define variable iLastYear as integer no-undo.
+
+/* loop check Header doc type U */
+for each V_BelegKopf
+  where V_BelegKopf.Firma    = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and V_BelegKopf.BelegArt = 'U'
+  no-lock:
+
+  /* check position */
   for each V_BelegPos
     where V_BelegPos.Firma        = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
       and V_BelegPos.BelegArt     = V_BelegKopf.BelegArt
       and V_BelegPos.ReferenzNr   = V_BelegKopf.ReferenzNr
     no-lock:
 
-      find first bV_BelegPos
-        where bV_BelegPos.Firma            = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
-          and bV_BelegPos.BelegArt         = 'U'
-          and bV_BelegPos.Herk_BelegArt    = V_BelegPos.BelegArt
-          and bV_BelegPos.Herk_ReferenzNr  = V_BelegPos.ReferenzNr
-          and bV_BelegPos.Herk_PositionsNr = V_BelegPos.PositionsNr
-        no-lock no-error.
+    /* check data year and month in table? */
+    find first ttMonthlySales
+      where ttMonthlySales.iYear  = year(V_BelegKopf.BelegDatum)
+        and ttMonthlySales.iMonth = month(V_BelegKopf.BelegDatum)
+      no-lock no-error.
 
-      find S_Kunde
-        where S_Kunde.Firma  = {firma/s_kunde.fir pACConnectionSvc:prpcCompany}
-          and S_Kunde.Kunde  = V_BelegKopf.Kunde
-        no-lock no-error.
+    /* if not have. create table */
+    if not available ttMonthlySales then
+    do:
+      create ttMonthlySales.
+      assign
+        ttMonthlySales.iYear     = year(V_BelegKopf.BelegDatum)
+        ttMonthlySales.iMonth    = month(V_BelegKopf.BelegDatum)
+        ttMonthlySales.dMonthTot = 0
+        .
+    end. /* if not available ttMonthlySales */
 
-      if available S_Kunde then
-      do:
-        find S_Adresse
-          where S_Adresse.Firma     = {firma/s_adres.fir }
-            and S_Adresse.AdressNr  = S_Kunde.AdressNr
-          no-lock no-error.
-      end. /* if available S_Kunde */
+    ttMonthlySales.dMonthTot = ttMonthlySales.dMonthTot + (V_BelegPos.Menge * V_BelegPos.Einzelpreis).
 
-      find S_ArtikelSpr
-        where S_ArtikelSpr.Firma    = {firma/sartikel.fir pACConnectionSvc:prpcCompany}
-          and S_ArtikelSpr.Artikel  = V_BelegPos.Artikel
-          and S_ArtikelSpr.Sprache  = 'D'
-        no-lock no-error.
+  end. /* for each V_BelegPos */
+end. /* for each V_BelegKopf */
 
+/* loop calculation price */
+for each ttMonthlySales
+  break by ttMonthlySales.iYear by ttMonthlySales.iMonth:
 
-    display
-      (string(S_Kunde.Kunde))                                                  label 'Kunde'
-      (if available S_Adresse then S_Adresse.Name1 else '')                    label 'Name'
-      (string(V_BelegPos.BelegNummer))                                         label 'BelegNr(A)'
-      (if available bV_BelegPos then string(bV_BelegPos.BelegNummer) else '-') label 'BelegNr(U)'
-      (if available bV_BelegPos then 'yes' else 'no')                          label 'Adoption'
-      (string(V_BelegPos.PositionsNr))                                         label 'Pos'
-      (string(V_BelegPos.Artikel))                                             label 'Teil'
-      (if available S_ArtikelSpr then S_ArtikelSpr.Bezeichnung[1] else '')     label 'Bezeichnung' format
-      with width 150 down.
-  end.
-end.
+  if iLastYear <> ttMonthlySales.iYear then
+    assign
+      dYearAcc  = 0
+      iLastYear = ttMonthlySales.iYear
+      .
+
+  dYearAcc = dYearAcc + ttMonthlySales.dMonthTot.
+
+  put stream stSale9 unformatted
+    ttMonthlySales.iMonth ';'
+    ttMonthlySales.iYear ';'
+    replace(string(ttMonthlySales.dMonthTot, '-zzzzzzzzz9.99'), '.', ',') ';'
+    replace(string(dYearAcc, '-zzzzzzzzzz9.99'), '.', ',') skip.
+end. /* for each ttMonthlySales */
+
+output stream stSale9 close.
