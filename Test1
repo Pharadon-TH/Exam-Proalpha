@@ -197,3 +197,131 @@ output stream stExport close.
 
 message "Export complete to: " + cFileExport
         view-as alert-box information.
+
+/*-------------------------------------------------------------------------------------------*/
+
+/* Test 1 Complete Debug */
+
+define stream stExport.
+define variable cFileExport as character no-undo init "D:/Export.csv":U.
+
+define temp-table ttGroup no-undo
+    field ttArtArt   as integer
+    field ttKunde    as integer
+    field ttItemList as character
+    field ttItemCnt  as integer
+
+index main is unique
+ttArtArt
+ttKunde
+.
+
+define temp-table ttFinal no-undo
+    field tfArtArt   as integer
+    field tfItemList as character
+    field tfCustList as character
+
+index main is unique
+tfArtArt
+tfItemList
+.
+
+/* loop check S_ArtKunde */
+for each S_ArtKunde
+  where S_ArtKunde.Firma = {firma/sartkund.fir '100':U}
+  no-lock:
+
+  /* check S_Artikel */
+  find S_Artikel
+    where S_Artikel.Firma   = {firma/sartikel.fir '100':U}
+      and S_Artikel.Artikel = S_ArtKunde.Artikel
+    no-lock no-error.
+
+    /* check ArtikelArt in S_Artikel */
+    if available S_Artikel then
+    do:
+      find ttGroup
+        where ttGroup.ttArtArt = S_Artikel.ArtikelArt
+          and ttGroup.ttKunde  = S_ArtKunde.Kunde
+        exclusive-lock no-error.
+
+      /* check table if not have. create new table */
+      if not available ttGroup then
+      do:
+        create ttGroup.
+        assign
+          ttGroup.ttArtArt   = S_Artikel.ArtikelArt
+          ttGroup.ttKunde    = S_ArtKunde.Kunde
+          ttGroup.ttItemList = S_ArtKunde.Artikel
+          ttGroup.ttItemCnt  = 1
+          .
+      end. /* if not available ttGroup */
+
+      /* check list Artikel inrelation */
+      else
+      do:
+        if lookup(S_ArtKunde.Artikel, ttGroup.ttItemList) = 0 then
+        do:
+          assign
+            ttGroup.ttItemList = ttGroup.ttItemList + ", " + S_ArtKunde.Artikel
+            ttGroup.ttItemCnt  = ttGroup.ttItemCnt + 1
+            .
+        end. /* if lookup */
+      end. /* else */
+    end. /* if available S_Artikel  */
+end. /* for each S_ArtKunde */
+
+/* check Artikel >= 2 */
+for each ttGroup
+  where ttGroup.ttItemCnt >= 2
+  no-lock:
+  
+  find ttFinal
+    where ttFinal.tfArtArt   = ttGroup.ttArtArt
+      and ttFinal.tfItemList = ttGroup.ttItemList
+    exclusive-lock no-error.
+
+    /* check table if not have -> creat table */
+    if not available ttFinal then
+    do:
+      create ttFinal.
+      assign
+        ttFinal.tfArtArt   = ttGroup.ttArtArt
+        ttFinal.tfItemList = ttGroup.ttItemList
+        ttFinal.tfCustList = string(ttGroup.ttKunde)
+        .
+    end. /* if not available ttFinal */
+
+    /* check list kunde in relation */
+    else
+    do:
+      if lookup(string(ttGroup.ttKunde), ttFinal.tfCustList) = 0 then
+      assign
+        ttFinal.tfCustList = ttFinal.tfCustList + ", " + string(ttGroup.ttKunde)
+        .
+    end. /* else */
+end. /* for each ttGroup */
+
+/*Result export and display*/
+output stream stExport to value(cFileExport).
+put stream stExport unformatted "Artikel;ArtikelArt;Customer" skip.
+
+for each ttFinal  
+  by ttFinal.tfArtArt
+  no-lock:
+    put stream stExport unformatted
+        ttFinal.tfItemList ";"
+        ttFinal.tfArtArt   ";"
+        ttFinal.tfCustList skip.
+
+    display
+      ttFinal.tfItemList format "x(30)" column-label "Artikel"
+      ttFinal.tfArtArt   column-label "ArtikelArt"
+      ttFinal.tfCustList format "x(25)" column-label "Customer"
+      with frame fDisplay width 100 20 down.
+end. /* for each ttFinal */
+
+output stream stExport close.
+
+message "Export complete to: " + cFileExport
+        view-as alert-box information.
