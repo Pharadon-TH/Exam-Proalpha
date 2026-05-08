@@ -460,7 +460,7 @@ define temp-table ttRedundant no-undo
   field BelegArt    like V_BelegKopf.BelegArt
   field BelegNummer like V_BelegKopf.BelegNummer
   field Artikel     like V_BelegPos.Artikel
-  field Positions   as character format 'x(30)' label 'PositionNr'
+  field Positions   as character format 'x(30)' label 'PositionNr':U
   field ItemCount   as integer
 
   index main is unique
@@ -535,14 +535,14 @@ You can look for the date of each document in the field belegDatum
 define stream stSale9.
 
 output stream stSale9 to 'D:/Work/Sale-9.csv'.
-put stream stSale9 unformatted 'mount;year;mounth;yearTotal' skip.
+put stream stSale9 unformatted 'mount;year;mounth;yearTotal':U  skip.
 
 define temp-table ttMonthlySales no-undo
   field iYear        as integer
   field iMonth       as integer
   field dMonthTot    as decimal
 
-  index mian is primary
+  index main is primary unique
     iYear
     iMonth
     .
@@ -552,8 +552,8 @@ define variable iLastYear as integer no-undo.
 
 /* loop check Header doc type U */
 for each V_BelegKopf
-  where V_BelegKopf.Firma    = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
-    and V_BelegKopf.BelegArt = 'U'
+  where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and V_BelegKopf.BelegArt    = 'U'
   no-lock:
 
   /* check position */
@@ -564,7 +564,7 @@ for each V_BelegKopf
     no-lock:
 
     /* check data year and month in table? */
-    find first ttMonthlySales
+    find ttMonthlySales
       where ttMonthlySales.iYear  = year(V_BelegKopf.BelegDatum)
         and ttMonthlySales.iMonth = month(V_BelegKopf.BelegDatum)
       no-lock no-error.
@@ -576,18 +576,20 @@ for each V_BelegKopf
       assign
         ttMonthlySales.iYear     = year(V_BelegKopf.BelegDatum)
         ttMonthlySales.iMonth    = month(V_BelegKopf.BelegDatum)
-        ttMonthlySales.dMonthTot = 0
+        ttMonthlySales.dMonthTot = V_BelegPos.Menge * V_BelegPos.Einzelpreis
         .
+        
     end. /* if not available ttMonthlySales */
 
-    ttMonthlySales.dMonthTot = ttMonthlySales.dMonthTot + (V_BelegPos.Menge * V_BelegPos.Einzelpreis).
+    else
+      ttMonthlySales.dMonthTot = ttMonthlySales.dMonthTot + (V_BelegPos.Menge * V_BelegPos.Einzelpreis).
 
   end. /* for each V_BelegPos */
 end. /* for each V_BelegKopf */
 
 /* loop calculation price */
 for each ttMonthlySales
-  break by ttMonthlySales.iYear by ttMonthlySales.iMonth:
+  by ttMonthlySales.iYear by ttMonthlySales.iMonth:
 
   if iLastYear <> ttMonthlySales.iYear then
     assign
@@ -600,8 +602,241 @@ for each ttMonthlySales
   put stream stSale9 unformatted
     ttMonthlySales.iMonth ';'
     ttMonthlySales.iYear ';'
-    replace(string(ttMonthlySales.dMonthTot, '-zzzzzzzzz9.99'), '.', ',') ';'
-    replace(string(dYearAcc, '-zzzzzzzzzz9.99'), '.', ',') skip.
+    ttMonthlySales.dMonthTot ';'
+    dYearAcc skip.
 end. /* for each ttMonthlySales */
 
 output stream stSale9 close.
+
+
+/*------------------ Sale 10 ------------------*/
+
+/*
+Calculate total price for all documents of each Kunde
+*/
+
+define stream stSale10.
+
+output stream stSale10 to 'D:/Work/Sale-10.csv'.
+put stream stSale10 unformatted 'Kunde;Total_A;Total_U;Total_L;Total_R':U skip.
+
+define temp-table ttKundeTotal no-undo
+  field Kunde   like V_BelegKopf.Kunde
+  field Total_A as decimal
+  field Total_U as decimal
+  field Total_L as decimal
+  field Total_R as decimal
+
+  index idxKunde is primary unique
+    Kunde
+    .
+
+define variable dLineTotal as decimal no-undo.
+
+/* loop check doc type A,U,L,R */
+for each V_BelegKopf
+  where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and lookup(V_BelegKopf.BelegArt, 'A,U,L,R') > 0
+  no-lock:
+
+  /* check sale order is calculation */
+  for each V_BelegPos
+    where V_BelegPos.Firma        = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+      and V_BelegPos.BelegArt     = V_BelegKopf.BelegArt
+      and V_BelegPos.ReferenzNr   = V_BelegKopf.ReferenzNr
+    no-lock:
+
+    /* calculation in record */
+    dLineTotal = V_BelegPos.Menge * V_BelegPos.Einzelpreis.
+
+
+    /* find table Kunde if not have to create table */
+    find ttKundeTotal
+      where ttKundeTotal.Kunde = V_BelegKopf.Kunde
+      no-lock no-error.
+
+    if not available ttKundeTotal then
+    do:
+
+      create ttKundeTotal.
+      assign
+        ttKundeTotal.Kunde   = V_BelegKopf.Kunde
+        ttKundeTotal.Total_A = (if V_BelegKopf.BelegArt = 'A' then
+                                  ttKundeTotal.Total_A + dLineTotal
+                                else
+                                  ttKundeTotal.Total_A)
+        ttKundeTotal.Total_U = (if V_BelegKopf.BelegArt = 'U' then
+                                  ttKundeTotal.Total_U + dLineTotal
+                                 else
+                                  ttKundeTotal.Total_U)
+        ttKundeTotal.Total_L = (if V_BelegKopf.BelegArt = 'L' then
+                                  ttKundeTotal.Total_L + dLineTotal
+                                 else
+                                  ttKundeTotal.Total_L)
+        ttKundeTotal.Total_R = (if V_BelegKopf.BelegArt = 'R' then
+                                  ttKundeTotal.Total_R + dLineTotal
+                                else
+                                  ttKundeTotal.Total_R)
+        .
+
+    end. /* if not available ttKundeTotal */
+
+    /* Add the total amount according to beleg art */
+    else
+    do:
+
+      if V_BelegKopf.BelegArt = 'A' then
+        ttKundeTotal.Total_A = ttKundeTotal.Total_A + dLineTotal.
+
+      else if V_BelegKopf.BelegArt = 'U' then
+        ttKundeTotal.Total_U = ttKundeTotal.Total_U + dLineTotal.
+
+      else if V_BelegKopf.BelegArt = 'L' then
+        ttKundeTotal.Total_L = ttKundeTotal.Total_L + dLineTotal.
+
+      else if V_BelegKopf.BelegArt = 'R' then
+        ttKundeTotal.Total_R = ttKundeTotal.Total_R + dLineTotal.
+    end. /* else */
+
+  end. /* for each V_BelegPos */
+end. /* for each V_BelegKopf */
+
+for each ttKundeTotal
+  by ttKundeTotal.Kunde:
+
+  put stream stSale10 unformatted
+    ttKundeTotal.Kunde ';'
+    ttKundeTotal.Total_A ';'
+    ttKundeTotal.Total_U ';'
+    ttKundeTotal.Total_L ';'
+    ttKundeTotal.Total_R skip.
+
+end. /* for each ttKundeTotal */
+
+output stream stSale10 close.
+
+/*------------------ Sale 11 ------------------*/
+
+/*
+Calculate total price for all document of each Kunde and display Kunde with the maximum and minimum total sales
+*/
+
+define stream stSale11.
+
+output stream stSale11 to 'D:/Work/Sale-11.csv'.
+put stream stSale11 unformatted 'BelegArt;maxKunde;Max;minKunde;Min':U skip.
+
+/* table document */
+define temp-table ttKundeSales no-undo
+  field BelegArt   like V_BelegKopf.BelegArt
+  field Kunde      like V_BelegKopf.Kunde
+  field TotalSales as decimal
+
+  index idxMain is primary unique
+    BelegArt
+    Kunde
+
+  index idxSort
+    TotalSales
+    .
+/* table max/min */
+define temp-table ttSummary no-undo
+  field BelegArt  like V_BelegKopf.BelegArt
+  field maxKunde  like V_BelegKopf.Kunde
+  field MaxAmount as decimal
+  field minKunde  like V_BelegKopf.Kunde
+  field MinAmount as decimal.
+
+define variable dLineTotal   as decimal                     no-undo.
+define variable cTypes       as character initial 'A,U,L,R' no-undo.
+define variable i            as integer                     no-undo.
+define variable cCurrentType as character                   no-undo.
+
+/* loop check doc type */
+for each V_BelegKopf
+  where V_BelegKopf.Firma       = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and lookup(V_BelegKopf.BelegArt, cTypes) > 0
+  no-lock:
+
+  /* check sale order is calculation */
+  for each V_BelegPos
+    where V_BelegPos.Firma        = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+      and V_BelegPos.BelegArt     = V_BelegKopf.BelegArt
+      and V_BelegPos.ReferenzNr   = V_BelegKopf.ReferenzNr
+    no-lock:
+
+    /* calculation in record */
+    dLineTotal = V_BelegPos.Menge * V_BelegPos.Einzelpreis.
+
+    /* find table Kunde if not have to create table */
+    find first ttKundeSales
+      where ttKundeSales.BelegArt = V_BelegKopf.BelegArt
+        and ttKundeSales.Kunde    = V_BelegKopf.Kunde
+      exclusive-lock no-error.
+
+    if not available ttKundeSales then
+    do:
+
+      create ttKundeSales.
+      assign
+        ttKundeSales.BelegArt   = V_BelegKopf.BelegArt
+        ttKundeSales.Kunde      = V_BelegKopf.Kunde
+        ttKundeSales.TotalSales = ttKundeSales.TotalSales + dLineTotal
+        .
+
+    end. /* if not available ttKundeTotal */
+
+    else
+      ttKundeSales.TotalSales = ttKundeSales.TotalSales + dLineTotal.
+     
+  end. /* for each V_BelegPos */
+end. /* for each V_BelegKopf */
+
+/* find max/min in type A,U,L,R */
+do i = 1 to num-entries(cTypes):
+  cCurrentType = entry(i, cTypes).
+
+  /* create line to summary */
+  create ttSummary.
+  ttSummary.BelegArt = cCurrentType.
+
+  /* find max */
+  for each ttKundeSales
+    where ttKundeSales.BelegArt = cCurrentType
+    no-lock
+    break by ttKundeSales.TotalSales descending:
+
+    assign
+      ttSummary.maxKunde  = ttKundeSales.Kunde
+      ttSummary.MaxAmount = ttKundeSales.TotalSales
+      .
+      leave. /* find max leave */
+
+  end. /* for each ttKundeTotal */
+
+  /* find min */
+  for each ttKundeSales
+    where ttKundeSales.BelegArt = cCurrentType
+    no-lock
+    break by ttKundeSales.TotalSales:
+
+    assign
+      ttSummary.minKunde  = ttKundeSales.Kunde
+      ttSummary.MinAmount = ttKundeSales.TotalSales
+      .
+      leave. /* find min leave */
+  end. /* for each ttKundeTotal */
+end. /* do i */
+
+for each ttSummary:
+  put stream stSale11 unformatted
+    ttSummary.BelegArt ';'
+    ttSummary.maxKunde ';'
+    ttSummary.MaxAmount ';'
+    ttSummary.minKunde ';'
+    ttSummary.MinAmount skip.
+end.
+
+output stream stSale11 close.
+  
+
