@@ -49,14 +49,18 @@ Display fields: BelegNummer;BelegDatum;PositionsNr;Artikel;Bezeichnung[1];Menge;
 
 current-window:width = 150.
 
+define variable cDesc as character label 'Bezeichnung' format 'x(30)' no-undo.
+
 for each E_BelegKopf
   where E_BelegKopf.Firma       = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+    and E_BelegKopf.BelegArt    = 'EB'
     and E_BelegKopf.BelegNummer = 50200566
   no-lock:
 
 
   for each E_BelegPos
     where E_BelegPos.Firma        = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+          E_BelegPos.BelegArt     = E_BelegKopf.BelegArt
       and E_BelegPos.ReferenzNr   = E_BelegKopf.ReferenzNr
     no-lock:
     
@@ -67,16 +71,16 @@ for each E_BelegKopf
       no-lock no-error.
 
     if available S_ArtikelSpr then
-      S_ArtikelSpr.Bezeichnung[1].
+      cDesc = S_ArtikelSpr.Bezeichnung[1].
     else
-      ''.
+      cDesc = ''.
 
     display
       E_BelegKopf.BelegNummer
       E_BelegKopf.BelegDatum
       E_BelegPos.PositionsNr
       E_BelegPos.Artikel
-      S_ArtikelSpr.Bezeichnung[1]
+      cDesc
       E_BelegPos.Menge
       E_BelegPos.Einzelpreis
       E_BelegPos.Menge * E_BelegPos.Einzelpreis label 'Gesamtpreis' format '-zzzzzzzzz9.99'
@@ -85,9 +89,18 @@ for each E_BelegKopf
     
   end.
 end.
-  
 
 
+
+/*
+define variable i as integer no-undo.
+
+do i = 1 to 2:
+
+message (i=1).
+
+end. /* ? */
+*/
 
 /*------------------ Purchase 3 (Version: Loop from EB) ------------------*/
 
@@ -100,6 +113,9 @@ define stream stPurchase3.
 
 define buffer bS_Adresse_Lief for S_Adresse.
 define buffer bS_Adresse_Kund for S_Adresse.
+
+define variable cLief  as character no-undo.
+define variable cKunde as character no-undo.
 
 output stream stPurchase3 to 'D:/Work/Purchase-3test3.csv'.
 put stream stPurchase3 unformatted 'BelegNr(EB);Lieferant;Lieferant Name1;BelegNr(U);Kunde;Kunde Name1':U skip.
@@ -122,8 +138,7 @@ for each E_BelegKopf
     do:
     
       find V_BelegPos
-        where V_BelegPos.Firma          = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
-          and V_BelegPos.V_BelegPos_Obj = E_BelegPos.Coverage_Obj
+        where V_BelegPos.V_BelegPos_Obj = E_BelegPos.Coverage_Obj
         no-lock no-error.
 
       if available V_BelegPos then
@@ -153,9 +168,9 @@ for each E_BelegKopf
               no-lock no-error.
                 
             if available bS_Adresse_Lief then
-              bS_Adresse_Lief.Name1.
+              cLief = bS_Adresse_Lief.Name1.
             else
-             'Unknown'.
+              cLief = 'Unknown'.
              
           end.
 
@@ -173,18 +188,18 @@ for each E_BelegKopf
               no-lock no-error.
                 
             if available bS_Adresse_Kund then
-              bS_Adresse_Kund.Name1.
+              cKunde = bS_Adresse_Kund.Name1.
             else
-             'Unknown'.
+              cKunde = 'Unknown'.
           end.
 
           put stream stPurchase3 unformatted
             E_BelegKopf.BelegNummer ";"
             E_BelegKopf.Lieferant   ";"
-            bS_Adresse_Lief.Name1   ";"
+            cLief                   ";"
             V_BelegKopf.BelegNummer ";"
             V_BelegKopf.Kunde       ";"
-            bS_Adresse_Kund.Name1
+            cKunde
             skip.
               
         end. /* if avail V_BelegKopf */
@@ -328,18 +343,22 @@ for each V_BelegKopf
       and V_BelegPos.LfdNr_SR   = 0
     no-lock:
     
-    for each E_BelegPos
+    find E_BelegPos
       where E_BelegPos.Firma               = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
         and E_BelegPos.BelegArt            = 'EB':U
         and E_BelegPos.Coverage_MRPDocType = V_BelegPos.BelegArt
         and E_BelegPos.Coverage_Obj        = V_BelegPos.V_BelegPos_Obj
+        and E_BelegPos.BelegArt            = V_BelegPos.BelegArt
       no-lock:
-      
-    assign
-      dGesamtU  = V_BelegPos.Menge * V_BelegPos.Einzelpreis
-      dGesamtEB = E_BelegPos.Menge * E_BelegPos.Einzelpreis
-      dGewinn   = dGesamtU - dGesamtEB.
-      
+
+    if available E_BelegPos then
+    do:
+      assign
+        dGesamtU  = V_BelegPos.Menge * V_BelegPos.Einzelpreis
+        dGesamtEB = E_BelegPos.Menge * E_BelegPos.Einzelpreis
+        dGewinn   = dGesamtU - dGesamtEB
+        .
+    end.
       
     put stream stPurchase4 unformatted
       V_BelegKopf.BelegArt   ";"
@@ -372,9 +391,17 @@ Export csv file -> List of Document type;PositionsNr;List of Document No.;List o
 
 define stream stPurchase5.
 
-output stream stPurchase5 to 'D:/Work/Purchase-5.csv'.
-put stream stPurchase5 unformatted 'BelegArt;List of Document type;PositionsNr;List of Document No.;List of missing document type.':U skip.
+define variable cDocTypes as character no-undo.
+define variable cDocNo    as character no-undo.
+define variable cMissing  as character no-undo.
+define variable lHasEWE   as logical   no-undo.
 
+output stream stPurchase5 to 'D:/Work/Purchase-5.csv'.
+put stream stPurchase5 unformatted 'List of Document type;PositionsNr;List of Document No.;List of missing document type.':U skip.
+
+/* Case 1: loop EAA -> EB -> EWE -> ERR */
+
+/* check EAA */
 for each EA_AnfKopf
   where EA_AnfKopf.Firma       = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
   no-lock:
@@ -383,9 +410,577 @@ for each EA_AnfKopf
     where EA_AnfPos.Firma        = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
       and EA_AnfPos.ReferenzNr   = EA_AnfKopf.ReferenzNr
     no-lock:
-    
-    find
-  
-  end. /* ? */
 
-end. /* ? */
+    assign
+      cDocTypes = "EAA":U
+      cDocNo    = string(EA_AnfKopf.BelegNummer)
+      cMissing  = ""
+      lHasEWE   = false
+      .
+
+    /* check EB */
+    find find E_BelegPos
+      where E_BelegPos.Firma            = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+        and E_BelegPos.BelegArt         = 'EB':U
+        and E_BelegPos.Herk_Belegart    = 'EAA':U
+        and E_BelegPos.Herk_ReferenzNr  = EA_AnfPos.ReferenzNr
+        and E_BelegPos.Herk_PositionsNr = EA_AnfPos.PositionsNr
+      no-lock no-error.
+
+    if available E_BelegPos then
+    do:
+      find E_BelegKopf
+        where E_BelegKopf.Firma       = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+          and E_BelegKopf.BelegArt    = E_BelegPos.BelegArt
+          and E_BelegKopf.ReferenzNr  = E_BelegPos.ReferenzNr
+        no-lock no-error.
+
+      if available E_BelegKopf then
+        assign
+          cDocTypes = cDocTypes + ",EB":U
+          cDocNo    = cDocNo + ", " + string(E_BelegKopf.BelegNummer)
+          .
+
+      /* check EWE */
+      find E_WE_Pos
+        where E_WE_Pos.Firma             = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+          and E_WE_Pos.Herk_Belegart     = 'EB':U
+          and E_WE_Pos.Herk_ReferenzNr   = E_BelegPos.ReferenzNr
+          and E_WE_Pos.Herk_PositionsNr  = E_BelegPos.PositionsNr
+        no-lock no-error.
+
+      if available E_WE_Pos then
+      do:
+        find E_WE_Kopf
+          where E_WE_Kopf.Firma       = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+            and E_WE_Kopf.ReferenzNr  = E_WE_Pos.ReferenzNr
+          no-lock no-error.
+
+        if available E_WE_Kopf then
+        do:
+          assign
+            cDocTypes = cDocTypes + ",EWE":U
+            cDocNo    = cDocNo + ", " + string(E_WE_Kopf.BelegNummer)
+            lHasEWE   = true
+            .
+        end. /* if available E_WE_Kopf */
+
+        else
+          cMissing = "EWE":U.
+
+      end. /* if available E_WE_Pos */
+
+      else
+        cMissing = "EWE":U.
+
+      /* check ERR */
+      if lHasEWE then
+      do:
+        find ER_BelegPos
+          where ER_BelegPos.Firma           = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+            and ER_BelegPos.BelegArt        = 'ERR':U
+            and ER_BelegPos.WE_ReferenzNr   = E_WE_Pos.ReferenzNr
+            and ER_BelegPos.WE_PositionsNr  = E_WE_Pos.PositionsNr
+          no-lock no-error.
+      end. /* if lHasEWE */
+
+      else
+      do:
+        find first ER_BelegPos
+          where ER_BelegPos.Firma            = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+            and ER_BelegPos.BelegArt         = 'ERR':U
+            and ER_BelegPos.Herk_Belegart    = E_BelegPos.BelegArt
+            and ER_BelegPos.Herk_ReferenzNr  = E_BelegPos.ReferenzNr
+            and ER_BelegPos.Herk_PositionsNr = E_BelegPos.PositionsNr
+          no-lock no-error.
+
+      end. /* else */
+
+      if available ER_BelegPos then
+      do:
+        find ER_BelegKopf
+          where ER_BelegKopf.Firma       = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+            and ER_BelegKopf.BelegArt    = ER_BelegPos.BelegArt
+            and ER_BelegKopf.ReferenzNr  = ER_BelegPos.ReferenzNr
+          no-lock no-error.
+
+        if available ER_BelegKopf then
+          assign
+            cDocTypes = cDocTypes + ",ERR":U
+            cDocNo    = cDocNo  + ", " + string(ER_BelegKopf.BelegNummer)
+            .
+        else
+          assign
+            cMissing = cMissing + (if cMissing = "" then
+                                     "ERR":U
+                                   else
+                                     ",ERR":U).
+
+      end. /* else */
+
+      else
+        assign
+          cMissing = cMissing + (if cMissing = "" then
+                                   "ERR":U
+                                 else
+                                   ",ERR":U).
+
+    end. /* if available E_BelegPos */
+
+    /* condition Missing EB*/
+    else
+    do:
+      assign
+        cMissing = "EB,EWE,ERR":U.
+
+    end. /* else */
+
+    /*if cDocTypes = "EAA" then
+      next.*/
+
+    put stream stPurchase5 unformatted
+      cDocTypes             ";"
+      EA_AnfPos.PositionsNr ";"
+      cDocNo                ";"
+      cMissing skip.
+
+  end. /* for each EA_AnfKopf */
+end. /* for each EA_AnfPos */
+
+
+/* Case 2: loop  EB -> EWE -> ERR */
+
+/* check EB */
+for each E_BelegKopf
+  where E_BelegKopf.Firma    = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+    and E_BelegKopf.BelegArt = 'EB':U
+  no-lock:
+
+  /* condintion no link EAA */
+  for each E_BelegPos
+    where E_BelegPos.Firma      = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+      and E_BelegPos.BelegArt   = E_BelegKopf.BelegArt
+      and E_BelegPos.ReferenzNr = E_BelegKopf.ReferenzNr
+      and E_BelegPos.Herk_Belegart <> 'EAA':U
+    no-lock:
+
+    assign
+      cDocTypes = "EB":U
+      cDocNo    = string(E_BelegKopf.BelegNummer)
+      cMissing  = "EAA":U
+      lHasEWE   = false
+      .
+
+    /* check EWE link EB */
+    find E_WE_Pos
+      where E_WE_Pos.Firma             = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+        and E_WE_Pos.Herk_Belegart     = E_BelegPos.BelegArt
+        and E_WE_Pos.Herk_ReferenzNr   = E_BelegPos.ReferenzNr
+        and E_WE_Pos.Herk_PositionsNr  = E_BelegPos.PositionsNr
+      no-lock no-error.
+
+    if available E_WE_Pos then
+    do:
+      find E_WE_Kopf
+        where E_WE_Kopf.Firma      = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+          and E_WE_Kopf.ReferenzNr = E_WE_Pos.ReferenzNr
+        no-lock no-error.
+
+      if available E_WE_Kopf then
+      do:
+        assign
+          cDocTypes = cDocTypes + ",EWE":U
+          cDocNo    = cDocNo + ", " + string(E_WE_Kopf.BelegNummer)
+          lHasEWE   = true
+          .
+      end.
+
+      else
+        assign
+          cMissing = cMissing + ",EWE":U.
+    end.
+
+    else
+      assign
+        cMissing = cMissing + ",EWE":U.
+
+    /* check ERR link EWE */
+    if lHasEWE then
+    do:
+      find ER_BelegPos
+        where ER_BelegPos.Firma          = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+          and ER_BelegPos.BelegArt       = 'ERR':U
+          and ER_BelegPos.WE_ReferenzNr  = E_WE_Pos.ReferenzNr
+          and ER_BelegPos.WE_PositionsNr = E_WE_Pos.PositionsNr
+        no-lock no-error.
+    end.
+
+    /* check ERR no link EWE go to link EB*/
+    else
+    do:
+      find first ER_BelegPos
+        where ER_BelegPos.Firma            = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+          and ER_BelegPos.BelegArt         = 'ERR':U
+          and ER_BelegPos.Herk_Belegart    = E_BelegPos.BelegArt
+          and ER_BelegPos.Herk_ReferenzNr  = E_BelegPos.ReferenzNr
+          and ER_BelegPos.Herk_PositionsNr = E_BelegPos.PositionsNr
+        no-lock no-error.
+    end.
+
+    if available ER_BelegPos then
+    do:
+        find ER_BelegKopf
+          where ER_BelegKopf.Firma      = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+            and ER_BelegKopf.BelegArt   = ER_BelegPos.BelegArt
+            and ER_BelegKopf.ReferenzNr = ER_BelegPos.ReferenzNr
+          no-lock no-error.
+
+        if available ER_BelegKopf then
+            assign
+              cDocTypes = cDocTypes + ",ERR":U
+              cDocNo    = cDocNo + ", ":U + string(ER_BelegKopf.BelegNummer)
+              .
+
+        else
+          assign
+            cMissing = cMissing + ",ERR":U.
+    end.
+
+    else
+      assign
+        cMissing = cMissing + ",ERR":U.
+
+    /* if cDocTypes = "EB" then
+      next. */
+
+    put stream stPurchase5 unformatted
+      cDocTypes              ";"
+      E_BelegPos.PositionsNr ";"
+      cDocNo                 ";"
+      cMissing skip.
+  end.
+end.
+
+output stream stPurchase5 close.
+
+
+/*------------------ Purchase 6 ------------------*/
+
+/*
+List all documents link from Rechnungskontrolle to Anfrage (ERR -> EWE -> EB -> EAA and ERR -> EB -> EAA)
+Export csv file ->  List of Document type;PositionsNr;List of Document No.;List of missing document type.
+*/
+
+define stream stPurchase6.
+
+define variable cDocTypes as character no-undo.
+define variable cDocNo    as character no-undo.
+define variable cMissing  as character no-undo.
+
+output stream stPurchase6 to "D:/Work/Purchase-6.csv".
+put stream stPurchase6 unformatted "List of Document type;PositionsNr;List of Document No.;List of missing document type.":U skip.
+
+/* loop check ERR */
+for each ER_BelegKopf
+  where ER_BelegKopf.Firma       = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+    and ER_BelegKopf.BelegArt    = 'ERR':U
+  no-lock:
+  
+  for each ER_BelegPos
+    where ER_BelegPos.Firma      = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+      and ER_BelegPos.BelegArt   = ER_BelegKopf.BelegArt
+      and ER_BelegPos.ReferenzNr = ER_BelegKopf.ReferenzNr
+    no-lock:
+
+    assign
+      cDocTypes = 'ERR':U
+      cDocNo    = string(ER_BelegKopf.BelegNummer)
+      cMissing  = '':U
+      .
+
+    /* Step 1: Check back to EWE (if reference WE_ReferenzNr) */
+    if ER_BelegPos.WE_ReferenzNr <> '':U then
+    do:
+      find E_WE_Pos
+        where E_WE_Pos.Firma       = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+          and E_WE_Pos.ReferenzNr  = ER_BelegPos.WE_ReferenzNr
+          and E_WE_Pos.PositionsNr = ER_BelegPos.WE_PositionsNr
+        no-lock no-error.
+        
+      if available E_WE_Pos then
+      do:
+        find E_WE_Kopf
+          where E_WE_Kopf.Firma       = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+            and E_WE_Kopf.ReferenzNr  = E_WE_Pos.ReferenzNr
+          no-lock no-error.
+
+        if available E_WE_Kopf then
+          assign
+            cDocTypes = cDocTypes + ",EWE":U
+            cDocNo    = cDocNo + ", ":U + string(E_WE_Kopf.BelegNummer)
+            .
+            
+        else
+          assign
+            cMissing = "EWE":U
+            .
+
+        /* Find EB back from EWE */
+        find E_BelegPos
+          where E_BelegPos.Firma            = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+            and E_BelegPos.BelegArt         = 'EB':U
+            and E_BelegPos.ReferenzNr       = E_WE_Pos.Herk_ReferenzNr
+            and E_BelegPos.PositionsNr      = E_WE_Pos.Herk_PositionsNr
+          no-lock no-error.
+          
+      end. /* if available E_WE_Pos */
+
+      else
+      do:
+      
+        /* There is a WE_ReferenzNr number, but I can't really read EWE. */
+        assign
+          cMissing = "EWE":U
+          .
+
+        /* Find straight EB from ERR to Fallback, just in case */
+        find E_BelegPos
+          where E_BelegPos.Firma            = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+            and E_BelegPos.BelegArt         = 'EB':U
+            and E_BelegPos.ReferenzNr       = ER_BelegPos.Herk_ReferenzNr
+            and E_BelegPos.PositionsNr      = ER_BelegPos.Herk_PositionsNr
+          no-lock no-error.
+          
+      end. /* else Step 1*/
+    end. /* if ER_BelegPos.WE_ReferenzNr <> '':U */
+    
+    /*Step 2: Direct link (in case there is no EWE, skip back to the EB purchase order)*/
+    else
+    do:
+      find E_BelegPos
+        where E_BelegPos.Firma            = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+          and E_BelegPos.BelegArt         = 'EB':U
+          and E_BelegPos.ReferenzNr       = ER_BelegPos.Herk_ReferenzNr
+          and E_BelegPos.PositionsNr      = ER_BelegPos.Herk_PositionsNr
+        no-lock no-error.
+    end. /* else Step 2 */
+    
+    /*Step 3: Check the purchase order (EB) and go back to the price request (EAA)*/
+    if available E_BelegPos then
+    do:
+      find E_BelegKopf
+        where E_BelegKopf.Firma      = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+          and E_BelegKopf.BelegArt   = E_BelegPos.BelegArt
+          and E_BelegKopf.ReferenzNr = E_BelegPos.ReferenzNr
+        no-lock no-error.
+        
+      if available E_BelegKopf then
+        assign
+          cDocTypes = cDocTypes + ",EB":U
+          cDocNo    = cDocNo + ", ":U + string(E_BelegKopf.BelegNummer)
+          .
+      else
+        assign
+        cMissing = cMissing + (if cMissing = "":U then
+                                 "EB":U
+                               else ",EB":U).
+                               
+      /* Find an EAA from EB (condition that the source must be an EAA) */
+      if E_BelegPos.Herk_Belegart = 'EAA':U then
+      do:
+      
+        find EA_AnfPos
+          where EA_AnfPos.Firma       = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+            and EA_AnfPos.ReferenzNr  = E_BelegPos.Herk_ReferenzNr
+            and EA_AnfPos.PositionsNr = E_BelegPos.Herk_PositionsNr
+          no-lock no-error.
+
+        if available EA_AnfPos then
+        do:
+          find EA_AnfKopf
+            where EA_AnfKopf.Firma      = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+              and EA_AnfKopf.ReferenzNr = EA_AnfPos.ReferenzNr
+            no-lock no-error.
+
+          if available EA_AnfKopf then
+            assign
+              cDocTypes = cDocTypes + ",EAA":U
+              cDocNo    = cDocNo + ", ":U + string(EA_AnfKopf.BelegNummer)
+              .
+              
+          else
+            assign cMissing = cMissing + (if cMissing = "":U then
+                                            "EAA":U
+                                          else
+                                            ",EAA":U).
+        end. /* if available EA_AnfPos */
+        
+        else
+          assign
+            cMissing = cMissing + (if cMissing = "":U then
+                                     "EAA":U
+                                   else ",EAA":U).
+                                   
+      end. /* if E_BelegPos.Herk_Belegart = 'EAA':U  */
+      
+      else
+      do:
+        assign
+          cMissing = cMissing + (if cMissing = "":U then
+                                   "EAA":U
+                                 else
+                                   ",EAA":U).
+      end. /* else */
+    end. /* if available E_BelegPos */
+    
+    /* Can't find EB at all. It means that the welding cable has been broken since EB and EAA must not have it. */
+    else
+    do:
+      assign
+        cMissing = cMissing + (if cMissing = "":U then
+                                 "EB,EAA":U
+                               else
+                                 ",EB,EAA":U).
+    end.
+    
+
+    /* Step 4: Export CSV */
+    put stream stPurchase6 unformatted
+      cDocTypes               ";"
+      ER_BelegPos.PositionsNr ";"
+      cDocNo                  ";"
+      cMissing skip.
+
+  end. /* for each ER_BelegPos */
+end. /* for each ER_BelegKopf */
+
+output stream stPurchase6 close.
+
+/*------------------ Purchase 7 ------------------*/
+
+/*
+List documents Bestellung, in which LieferMenge in Wareneingang is less than Menge in Bestellung.
+Export csv file ->  BelegNummer (EB);Artikel;Menge(EB);LieferMenge(EWE), Outstanding Quantity.
+ Outstanding Quantity = Menge(EB) - LieferMenge(EWE)
+*/
+
+define stream stPurchase7.
+
+define variable dTotal         as decimal   no-undo.
+define variable dOutstanding   as decimal   no-undo.
+
+output stream stPurchase7 to 'D:/Work/Purchase-7.csv'.
+put stream stPurchase7 unformatted 'BelegNummer (EB);Artikel;Menge(EB);LieferMenge(EWE);Outstanding Quantity':U skip.
+
+/* loop check all EB */
+for each E_BelegKopf
+  where E_BelegKopf.Firma    = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+    and E_BelegKopf.BelegArt = 'EB':U
+  no-lock:
+
+  for each E_BelegPos
+    where E_BelegPos.Firma      = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+      and E_BelegPos.BelegArt   = E_BelegKopf.BelegArt
+      and E_BelegPos.ReferenzNr = E_BelegKopf.ReferenzNr
+    no-lock:
+
+    find E_WE_Pos
+      where E_WE_Pos.Firma            = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+        and E_WE_Pos.Herk_Belegart    = 'EB':U
+        and E_WE_Pos.Herk_ReferenzNr  = E_BelegPos.ReferenzNr
+        and E_WE_Pos.Herk_PositionsNr = E_BelegPos.PositionsNr
+      no-lock no-error.
+
+    if available E_WE_Pos then
+    do:
+    
+      dOutstanding = E_BelegPos.Menge - E_WE_Pos.LieferMenge.
+
+      /* If there is more Outstanding Quantity (Menge in EB than actually received), display the results */
+      if dOutstanding > 0 then
+      do:
+        put stream stPurchase7 unformatted
+          E_BelegKopf.BelegNummer ";"
+          E_BelegPos.Artikel      ";"
+          E_BelegPos.Menge        ";"
+          E_WE_Pos.LieferMenge    ";"
+          dOutstanding skip.
+      end. /* if dOutstanding > 0 */
+
+    end. /* if dOutstanding > 0 */
+  end. /* for each E_BelegKopf */
+end. /* for each E_BelegPos */
+
+/*------------------ Purchase 8 ------------------*/
+
+/*
+Calculate total price for all documents Rechnungskontrolle of each Lieferant and find who is Max and Min of total price
+*/
+
+define temp-table ttSupplierTotal no-undo
+  field LiefNr   like ER_BelegKopf.Lieferant
+  field TotalAmt as   decimal
+
+  index idxLief is primary unique LiefNr.
+
+define variable dTotal    as decimal   format '-zzz,zzz,zz9.99' no-undo.
+define variable dMaxAmt   as decimal   format '-zzz,zzz,zz9.99' no-undo.
+define variable cMaxLief  as character                          no-undo.
+define variable dMinAmt   as decimal   format '-zzz,zzz,zz9.99' no-undo.
+define variable cMinLief  as character                          no-undo.
+define variable lFirst    as logical   initial true             no-undo.
+
+/* loop check ERR */
+for each ER_BelegKopf
+  where ER_BelegKopf.Firma    = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+    and ER_BelegKopf.BelegArt = 'ERR':U
+  no-lock:
+
+  for each ER_BelegPos
+    where ER_BelegPos.Firma      = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+      and ER_BelegPos.BelegArt   = ER_BelegKopf.BelegArt
+      and ER_BelegPos.ReferenzNr = ER_BelegKopf.ReferenzNr
+    no-lock:
+
+
+    dTotal = ER_BelegPos.Menge * ER_BelegPos.Einzelpreis.
+
+    /*  */
+    find ttSupplierTotal
+      where ttSupplierTotal.LiefNr = ER_BelegKopf.Lieferant
+      no-error.
+
+    if not available ttSupplierTotal then
+    do:
+      create ttSupplierTotal.
+      assign ttSupplierTotal.LiefNr = ER_BelegKopf.Lieferant.
+    end.
+
+    assign
+      ttSupplierTotal.TotalAmt = ttSupplierTotal.TotalAmt + dTotal.
+
+  end. /* for each ER_BelegPos */
+end. /* for each ER_BelegKopf */
+
+for each ttSupplierTotal:
+
+  /* Max */
+  if ttSupplierTotal.TotalAmt > dMaxAmt then
+    assign
+      dMaxAmt  = ttSupplierTotal.TotalAmt
+      cMaxLief = string(ttSupplierTotal.LiefNr). /* ??? Error 223: ???????? string() */
+
+  /* Min */
+  if lFirst or ttSupplierTotal.TotalAmt < dMinAmt then
+    assign
+      dMinAmt  = ttSupplierTotal.TotalAmt
+      cMinLief = string(ttSupplierTotal.LiefNr)
+      lFirst   = false.
+end.
+
+display
+  "Max Amount:" format "x(12)" dMaxAmt  "Supplier:" cMaxLief skip
+  "Min Amount:" format "x(12)" dMinAmt  "Supplier:" cMinLief
+  with no-labels.
+
+  
