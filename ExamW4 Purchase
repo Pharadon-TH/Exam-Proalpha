@@ -1,0 +1,391 @@
+/*------------------ Purchase 1 ------------------*/
+
+/*
+Display all documents and items of Anfrage.
+Display fields: BelegNummer;BelegDatum;PositionsNr;Artikel;Bezeichnung[1]
+*/
+
+current-window:width = 100.
+
+for each EA_AnfKopf
+  where EA_AnfKopf.Firma       = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+  no-lock:
+
+  for each EA_AnfPos
+    where EA_AnfPos.Firma        = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+      and EA_AnfPos.ReferenzNr   = EA_AnfKopf.ReferenzNr
+    no-lock:
+
+    find S_ArtikelSpr
+      where S_ArtikelSpr.Firma    = {firma/sartikel.fir pACConnectionSvc:prpcCompany}
+        and S_ArtikelSpr.Artikel  = EA_AnfPos.Artikel
+        and S_ArtikelSpr.Sprache  = 'D'
+      no-lock no-error.
+
+    if available S_ArtikelSpr then
+      S_ArtikelSpr.Bezeichnung[1].
+    else
+      ''.
+
+    display
+      EA_AnfKopf.BelegNummer
+      EA_AnfKopf.BelegDatum
+      EA_AnfPos.PositionsNr
+      EA_AnfPos.Artikel
+      S_ArtikelSpr.Bezeichnung[1]
+      with width 100 down.
+
+  end.
+end.
+  
+
+/*------------------ Purchase 2 ------------------*/
+
+/*
+Display all Prices of each item of Bestellung which BelegNummer ‘50200566‘.
+Display fields: BelegNummer;BelegDatum;PositionsNr;Artikel;Bezeichnung[1];Menge;Einzelpreis;Gesamtpreis
+ Gesamtpreis = Menge x Einzelpreis
+*/
+
+current-window:width = 150.
+
+for each E_BelegKopf
+  where E_BelegKopf.Firma       = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+    and E_BelegKopf.BelegNummer = 50200566
+  no-lock:
+
+
+  for each E_BelegPos
+    where E_BelegPos.Firma        = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+      and E_BelegPos.ReferenzNr   = E_BelegKopf.ReferenzNr
+    no-lock:
+    
+    find S_ArtikelSpr
+      where S_ArtikelSpr.Firma    = {firma/sartikel.fir pACConnectionSvc:prpcCompany}
+        and S_ArtikelSpr.Artikel  = E_BelegPos.Artikel
+        and S_ArtikelSpr.Sprache  = 'D'
+      no-lock no-error.
+
+    if available S_ArtikelSpr then
+      S_ArtikelSpr.Bezeichnung[1].
+    else
+      ''.
+
+    display
+      E_BelegKopf.BelegNummer
+      E_BelegKopf.BelegDatum
+      E_BelegPos.PositionsNr
+      E_BelegPos.Artikel
+      S_ArtikelSpr.Bezeichnung[1]
+      E_BelegPos.Menge
+      E_BelegPos.Einzelpreis
+      E_BelegPos.Menge * E_BelegPos.Einzelpreis label 'Gesamtpreis' format '-zzzzzzzzz9.99'
+
+      with width 150 down.
+    
+  end.
+end.
+  
+
+
+
+/*------------------ Purchase 3 (Version: Loop from EB) ------------------*/
+
+/*
+find all documents Bestellung link to Auftrag.
+Export csv file -> BelegNr(EB);Lieferant;Lieferant Name1;BelegNr(U);Kunde;Kunde Name1
+*/
+
+define stream stPurchase3.
+
+define buffer bS_Adresse_Lief for S_Adresse.
+define buffer bS_Adresse_Kund for S_Adresse.
+
+output stream stPurchase3 to 'D:/Work/Purchase-3test3.csv'.
+put stream stPurchase3 unformatted 'BelegNr(EB);Lieferant;Lieferant Name1;BelegNr(U);Kunde;Kunde Name1':U skip.
+
+/* loop check doc type EB */
+for each E_BelegKopf
+  where E_BelegKopf.Firma    = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+    and E_BelegKopf.BelegArt = 'EB'
+  no-lock:
+
+  /* loop check Position */
+  for each E_BelegPos
+    where E_BelegPos.Firma      = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+      and E_BelegPos.BelegArt   = E_BelegKopf.BelegArt
+      and E_BelegPos.ReferenzNr = E_BelegKopf.ReferenzNr
+    no-lock:
+
+    /* Bestellung link to Auftrag */
+    if E_BelegPos.Coverage_MRPDocType = 'U' then
+    do:
+    
+      find V_BelegPos
+        where V_BelegPos.Firma          = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+          and V_BelegPos.V_BelegPos_Obj = E_BelegPos.Coverage_Obj
+        no-lock no-error.
+
+      if available V_BelegPos then
+      do:
+
+        find V_BelegKopf
+          where V_BelegKopf.Firma      = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+            and V_BelegKopf.BelegArt   = V_BelegPos.BelegArt
+            and V_BelegKopf.ReferenzNr = V_BelegPos.ReferenzNr
+          no-lock no-error.
+
+
+        if available V_BelegKopf then
+        do:
+        
+          /* find id name S_Lieferant */
+          find S_Lieferant
+            where S_Lieferant.Firma     ={firma/sliefera.fir pACConnectionSvc:prpcCompany}
+              and S_Lieferant.Lieferant = E_BelegKopf.Lieferant
+            no-lock no-error.
+              
+          if available S_Lieferant then
+          do:
+            find bS_Adresse_Lief
+              where bS_Adresse_Lief.Firma   = {firma/s_adres.fir pACConnectionSvc:prpcCompany}
+                and bS_Adresse_Lief.AdressNr = S_Lieferant.AdressNr
+              no-lock no-error.
+                
+            if available bS_Adresse_Lief then
+              bS_Adresse_Lief.Name1.
+            else
+             'Unknown'.
+             
+          end.
+
+          /* find id name S_Kunde */
+          find S_Kunde
+            where S_Kunde.Firma = {firma/s_kunde.fir pACConnectionSvc:prpcCompany}
+              and S_Kunde.Kunde = V_BelegKopf.Kunde
+            no-lock no-error.
+            
+          if available S_Kunde then
+          do:
+            find bS_Adresse_Kund
+              where bS_Adresse_Kund.Firma    =  {firma/s_adres.fir pACConnectionSvc:prpcCompany}
+                and bS_Adresse_Kund.AdressNr = S_Kunde.AdressNr
+              no-lock no-error.
+                
+            if available bS_Adresse_Kund then
+              bS_Adresse_Kund.Name1.
+            else
+             'Unknown'.
+          end.
+
+          put stream stPurchase3 unformatted
+            E_BelegKopf.BelegNummer ";"
+            E_BelegKopf.Lieferant   ";"
+            bS_Adresse_Lief.Name1   ";"
+            V_BelegKopf.BelegNummer ";"
+            V_BelegKopf.Kunde       ";"
+            bS_Adresse_Kund.Name1
+            skip.
+              
+        end. /* if avail V_BelegKopf */
+      end. /* if avail V_BelegPos */
+    end. /* if Coverage_MRPDocType = 'U' */
+  end. /* for each E_BelegPos */
+end. /* for each E_BelegKopf */
+
+output stream stPurchase3 close.
+message 'Export Purchase-3 Complete'
+        view-as alert-box information.
+        
+/*------------------ Purchase 3 (Version: Loop from U) ------------------*/
+
+/*
+find all documents Bestellung link to Auftrag.
+Export csv file -> BelegNr(EB);Lieferant;Lieferant Name1;BelegNr(U);Kunde;Kunde Name1
+*/
+
+define stream stPurchase3.
+
+define buffer bS_Adresse_Lief for S_Adresse.
+define buffer bS_Adresse_Kund for S_Adresse.
+
+output stream stPurchase3 to 'D:/Work/Purchase-3.csv'.
+put stream stPurchase3 unformatted 'BelegNr(EB);Lieferant;Lieferant Name1;BelegNr(U);Kunde;Kunde Name1':U skip.
+
+/* loop check doc Auftrag */
+for each V_BelegKopf
+  where V_BelegKopf.Firma    = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and V_BelegKopf.BelegArt = 'U'
+  no-lock:
+
+  /* loop check position */
+  for each V_BelegPos
+    where V_BelegPos.Firma      = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+      and V_BelegPos.BelegArt   = V_BelegKopf.BelegArt
+      and V_BelegPos.ReferenzNr = V_BelegKopf.ReferenzNr
+    no-lock:
+
+    /* loop check Bestellung link to Auftrag */
+    find first E_BelegPos
+      where E_BelegPos.Firma               = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+        and E_BelegPos.BelegArt            = 'EB':U
+        and E_BelegPos.Coverage_MRPDocType = V_BelegPos.BelegArt
+        and E_BelegPos.Coverage_Obj        = V_BelegPos.V_BelegPos_Obj
+      no-lock no-error.
+
+      /* check doc 'EB' */
+    if available E_BelegPos then
+    do:
+      find E_BelegKopf
+        where E_BelegKopf.Firma      = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+          and E_BelegKopf.BelegArt   = E_BelegPos.BelegArt
+          and E_BelegKopf.ReferenzNr = E_BelegPos.ReferenzNr
+        no-lock no-error.
+
+      if available E_BelegKopf then
+      do:
+
+        /* check id and name S_Lieferant */
+        find S_Lieferant
+          where S_Lieferant.Firma     = {firma/sliefera.fir pACConnectionSvc:prpcCompany}
+            and S_Lieferant.Lieferant = E_BelegKopf.Lieferant
+          no-lock no-error.
+
+        if available S_Lieferant then
+        do:
+          find bS_Adresse_Lief
+            where bS_Adresse_Lief.Firma   = {firma/s_adres.fir pACConnectionSvc:prpcCompany}
+              and bS_Adresse_Lief.AdressNr = S_Lieferant.AdressNr
+            no-lock no-error.
+
+          if available bS_Adresse_Lief then
+            bS_Adresse_Lief.Name1.
+        end.
+
+        /* check id and name S_Kunde */
+        find S_Kunde
+          where S_Kunde.Firma = {firma/s_kunde.fir pACConnectionSvc:prpcCompany}
+            and S_Kunde.Kunde = V_BelegKopf.Kunde
+          no-lock no-error.
+
+        if available S_Kunde then
+        do:
+          find bS_Adresse_Kund
+            where bS_Adresse_Kund.Firma   = {firma/s_adres.fir pACConnectionSvc:prpcCompany}
+              and bS_Adresse_Kund.AdressNr = S_Kunde.AdressNr
+            no-lock no-error.
+          if available bS_Adresse_Kund then
+            bS_Adresse_Kund.Name1.
+        end.
+
+        /* display info */
+        put stream stPurchase3 unformatted
+          E_BelegKopf.BelegNummer ";"
+          E_BelegKopf.Lieferant   ";"
+          bS_Adresse_Lief.Name1   ";"
+          V_BelegKopf.BelegNummer ";"
+          V_BelegKopf.Kunde       ";"
+          bS_Adresse_Kund.Name1
+          skip.
+
+
+      end. /* if available E_BelegPos */
+    end. /* for each E_BelegPos */
+  end. /* for each V_BelegPos */
+end. /* for each V_BelegKopf */
+
+output stream stPurchase3 close.
+message 'Export Purchase-3'
+        view-as alert-box information.
+        
+/*------------------ Purchase 4 ------------------*/
+
+/*
+Calculate Profit of each Artikel that is only related to Auftrag and Bestellung
+Export csv file -> BelegArt;Artikel;Menge(U); Einzelpreis(U);Gesamtpreis(U); Menge(EB); Einzelpreis(EB);Gesamtpreis(EB); Gewinn
+ 'Gewinn' means 'profit' in English. Calculate from Gesamtpreis(U) minus Gesamtpreis(EB)
+*/
+
+define stream stPurchase4.
+
+output stream stPurchase4 to 'D:/Work/Purchase-4.csv'.
+put stream stPurchase4 unformatted 'BelegArt;Artikel;Menge(U);Einzelpreis(U);Gesamtpreis(U);Menge(EB);Einzelpreis(EB);Gesamtpreis(EB);Gewinn':U skip.
+
+define variable dGesamtU  as decimal no-undo.
+define variable dGesamtEB as decimal no-undo.
+define variable dGewinn   as decimal no-undo.
+
+
+for each V_BelegKopf
+  where V_BelegKopf.Firma    = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and V_BelegKopf.BelegArt = 'U'
+  no-lock:
+  
+  for each V_BelegPos
+    where V_BelegPos.Firma      = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+      and V_BelegPos.BelegArt   = V_BelegKopf.BelegArt
+      and V_BelegPos.ReferenzNr = V_BelegKopf.ReferenzNr
+      and V_BelegPos.LfdNr_SR   = 0
+    no-lock:
+    
+    for each E_BelegPos
+      where E_BelegPos.Firma               = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+        and E_BelegPos.BelegArt            = 'EB':U
+        and E_BelegPos.Coverage_MRPDocType = V_BelegPos.BelegArt
+        and E_BelegPos.Coverage_Obj        = V_BelegPos.V_BelegPos_Obj
+      no-lock:
+      
+    assign
+      dGesamtU  = V_BelegPos.Menge * V_BelegPos.Einzelpreis
+      dGesamtEB = E_BelegPos.Menge * E_BelegPos.Einzelpreis
+      dGewinn   = dGesamtU - dGesamtEB.
+      
+      
+    put stream stPurchase4 unformatted
+      V_BelegKopf.BelegArt   ";"
+      V_BelegPos.Artikel     ";"
+      V_BelegPos.Menge       ";"
+      V_BelegPos.Einzelpreis ";"
+      dGesamtU               ";"
+      E_BelegPos.Menge       ";"
+      E_BelegPos.Einzelpreis ";"
+      dGesamtEB              ";"
+      dGewinn
+      skip.
+      
+    end.
+  end.
+end.
+
+output stream stPurchase4 close.
+
+message "Export  Purchase-4"
+        view-as alert-box information.
+        
+
+/*------------------ Purchase 5 ------------------*/
+
+/*
+List all documents link from Anfrage to Rechnungskontrolle (EAA -> EB -> EWE -> ERR and EAA -> EB -> ERR)
+Export csv file -> List of Document type;PositionsNr;List of Document No.;List of missing document type.
+*/
+
+define stream stPurchase5.
+
+output stream stPurchase5 to 'D:/Work/Purchase-5.csv'.
+put stream stPurchase5 unformatted 'BelegArt;List of Document type;PositionsNr;List of Document No.;List of missing document type.':U skip.
+
+for each EA_AnfKopf
+  where EA_AnfKopf.Firma       = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+  no-lock:
+
+  for each EA_AnfPos
+    where EA_AnfPos.Firma        = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+      and EA_AnfPos.ReferenzNr   = EA_AnfKopf.ReferenzNr
+    no-lock:
+    
+    find
+  
+  end. /* ? */
+
+end. /* ? */
