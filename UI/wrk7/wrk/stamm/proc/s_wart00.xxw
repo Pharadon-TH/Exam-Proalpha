@@ -1,0 +1,489 @@
+&ANALYZE-SUSPEND _VERSION-NUMBER UIB_v8r2 GUI
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _XFTR "Update Information" Procedure _INLINE
+/* Actions: ? ? ? ? adm/support/proc/ds_pa_01.w */
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CUSTOM _DEFINITIONS Procedure
+/******************************************************************************/
+/* @COPYRIGHT@                                                                */
+/* Project: Proalpha                                                          */
+/*                                                                            */
+/* Name   : s_wart00.xxw                                                      */
+/* Product: STAMM - Übergreifende Stammdaten                                  */
+/* Module : KERN - Kernfunktionen (alter Standard)                            */
+/*                                                                            */
+/* Created: 9.4.0 as of 30.06.2025/null                                       */
+/* Current: @PAVERSION@ as of @PADATE@/@PALASTAUTHOR@                         */
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+/* DESCRIPTION                                                                */
+/*----------------------------------------------------------------------------*/
+/*                                                                            */
+/* UserExits in s_wart00.w                                                    */
+/*  Teilestamm Bezeichnungen (Search SmartViewer)                             */
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+/* PARAMETERS                                                                 */
+/*----------------------------------------------------------------------------*/
+/* Name                      Description                                      */
+/*----------------------------------------------------------------------------*/
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+/* HISTORY                                                                    */
+/*----------------------------------------------------------------------------*/
+/* @FILEHISTORY@                                                              */
+/******************************************************************************/
+        
+
+/* Procedure Information -----------------------------------------------------*/
+
+&SCOPED-DEFINE pa-XIncBasisName     s_wart00_xxw
+
+/* Parameters ----------------------------------------------------------------*/
+
+/* Globals -------------------------------------------------------------------*/
+
+&IF DEFINED(XX) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+  &IF DEFINED(PA-XINFO) > 0 &THEN
+    &SCOPED-DEFINE TEMP {&PA-XINFO} + '/':U
+    &UNDEFINE      PA-XINFO
+  &ELSE
+    &SCOPED-DEFINE TEMP '':U
+  &ENDIF
+  &GLOBAL-DEFINE   PA-XINFO {&TEMP} + 's_wart00.xxw/null':U
+&ENDIF
+
+/* SCOPEDs -------------------------------------------------------------------*/
+
+/* Variables -----------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+/* Buffers -------------------------------------------------------------------*/
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&ANALYZE-SUSPEND _UIB-PREPROCESSOR-BLOCK
+
+/* ********************  Preprocessor Definitions  ******************** */
+
+
+
+/* _UIB-PREPROCESSOR-BLOCK-END */
+&ANALYZE-RESUME
+
+
+
+/* *********************** Procedure Settings ************************ */
+
+&ANALYZE-SUSPEND _PROCEDURE-SETTINGS
+/* Settings for THIS-PROCEDURE
+   Type: Include Template
+   Allow:
+   Frames: 0
+   Add Fields to: Neither
+   Other Settings: INCLUDE-ONLY
+ */
+&ANALYZE-RESUME _END-PROCEDURE-SETTINGS
+
+/* *************************  Create Window  ************************** */
+
+&ANALYZE-SUSPEND _CREATE-WINDOW
+/* DESIGN Window definition (used by the UIB)
+  CREATE WINDOW Include ASSIGN
+         HEIGHT             = 6.52
+         WIDTH              = 51.4.
+/* END WINDOW DEFINITION */
+                                                                        */
+&ANALYZE-RESUME
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _XFTR "UpdateAlp" Include _INLINE
+/* Actions: ? ? ? ? adm/support/proc/ds_ind02.p */
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _XFTR "Exits" Include _INLINE
+/* Actions: ? adm/support/proc/ds_ind01.p ? ? ? */
+
+/* STRUCTURED-DATA
+
+<DEFINE-EXITS>
+********/
+
+ &IF DEFINED(XX) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+  &GLOB {&PA-XBASISNAME}_DEFINITION                                            ~{stamm/proc/s_wart00.xxw &DEFINITION}
+  &GLOB {&PA-XBASISNAME}_DM_SMA00_MAIN                                         ~{stamm/proc/s_wart00.xxw &DM_SMA00_MAIN}
+  &GLOB {&PA-XBASISNAME}_PA_CCAPIGETINTERNALPROPERTY                           ~{stamm/proc/s_wart00.xxw &pa_cCAPIGetInternalProperty}
+  &GLOB {&PA-XBASISNAME}_SEND-WINDOW-TITLE_NACHLAUF                            ~{stamm/proc/s_wart00.xxw &SEND-WINDOW-TITLE_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_MAIN                                                  ~{stamm/proc/s_wart00.xxw &Main}
+  &GLOB {&PA-XBASISNAME}_INITIALIZE_VORLAUF                                    ~{stamm/proc/s_wart00.xxw &Initialize_Vorlauf}
+  &GLOB {&PA-XBASISNAME}_INITIALIZE_NACHLAUF                                   ~{stamm/proc/s_wart00.xxw &Initialize_Nachlauf}
+  &GLOB {&PA-XBASISNAME}_SETUP_VORLAUF                                         ~{stamm/proc/s_wart00.xxw &Setup_Vorlauf}
+  &GLOB {&PA-XBASISNAME}_SETUP_NACHLAUF                                        ~{stamm/proc/s_wart00.xxw &Setup_Nachlauf}
+  &GLOB {&PA-XBASISNAME}_DISPLAY-FIELDS_VORLAUF                                ~{stamm/proc/s_wart00.xxw &DISPLAY-FIELDS_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_DISPLAY-FIELDS_NACHLAUF                               ~{stamm/proc/s_wart00.xxw &DISPLAY-FIELDS_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_ADD-RECORD_VORLAUF                                    ~{stamm/proc/s_wart00.xxw &ADD-RECORD_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_ADD-RECORD_NACHLAUF                                   ~{stamm/proc/s_wart00.xxw &ADD-RECORD_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_ASSIGN-RECORD_VORLAUF                                 ~{stamm/proc/s_wart00.xxw &ASSIGN-RECORD_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_ASSIGN-RECORD_NACHLAUF                                ~{stamm/proc/s_wart00.xxw &ASSIGN-RECORD_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_ASSIGN-STATEMENT_VORLAUF                              ~{stamm/proc/s_wart00.xxw &ASSIGN-STATEMENT_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_ASSIGN-STATEMENT_NACHLAUF                             ~{stamm/proc/s_wart00.xxw &assign-statement_Nachlauf}
+  &GLOB {&PA-XBASISNAME}_DELETE-RECORD_VORLAUF                                 ~{stamm/proc/s_wart00.xxw &DELETE-RECORD_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_DELETE-RECORD_NACHLAUF                                ~{stamm/proc/s_wart00.xxw &DELETE-RECORD_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_DELETE-STATEMENT_VORLAUF                              ~{stamm/proc/s_wart00.xxw &DELETE-STATEMENT_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_DELETE-STATEMENT_NACHLAUF                             ~{stamm/proc/s_wart00.xxw &DELETE-STATEMENT_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_DISABLE-FIELDS_NACHLAUF                               ~{stamm/proc/s_wart00.xxw &DISABLE-FIELDS_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_ENABLE-FIELDS_VORLAUF                                 ~{stamm/proc/s_wart00.xxw &ENABLE-FIELDS_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_ENABLE-FIELDS_NACHLAUF                                ~{stamm/proc/s_wart00.xxw &ENABLE-FIELDS_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_END-UPDATE_VORLAUF                                    ~{stamm/proc/s_wart00.xxw &END-UPDATE_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_END-UPDATE_NACHLAUF                                   ~{stamm/proc/s_wart00.xxw &END-UPDATE_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_SML_RETRIEVECOMPANY                                   ~{stamm/proc/s_wart00.xxw &SML_RETRIEVECOMPANY}
+  &GLOB {&PA-XBASISNAME}_UPDATE-RECORD_NACHLAUF                                ~{stamm/proc/s_wart00.xxw &UPDATE-RECORD_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_CHECK-RECORD                                          ~{stamm/proc/s_wart00.xxw &CHECK-RECORD}
+  &GLOB {&PA-XBASISNAME}_HELPLIBMAIN                                           ~{stamm/proc/s_wart00.xxw &HelpLibMain}
+  &GLOB {&PA-XBASISNAME}_HELP-BEGIN_VORLAUF                                    ~{stamm/proc/s_wart00.xxw &HELP-BEGIN_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_HELP-BEGIN_NACHLAUF                                   ~{stamm/proc/s_wart00.xxw &HELP-BEGIN_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_HELP-COMPLETE_VORLAUF                                 ~{stamm/proc/s_wart00.xxw &HELP-COMPLETE_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_HELP-COMPLETE_NACHLAUF                                ~{stamm/proc/s_wart00.xxw &HELP-COMPLETE_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_OPEN-PDIALOG_FUELLE_TT_S_STAFFEL                      ~{stamm/proc/s_wart00.xxw &open-PDialog_Fuelle_TT_S_Staffel}
+  &GLOB {&PA-XBASISNAME}_ON_VALUE-CHANGED_OF_S_ARTIKEL_ARCHIVIERT_PRE          ~{stamm/proc/s_wart00.xxw &ON_VALUE-CHANGED_OF_S_Artikel_archiviert_Pre}
+  &GLOB {&PA-XBASISNAME}_ON_VALUE-CHANGED_OF_S_ARTIKEL_ARCHIVIERT_POST         ~{stamm/proc/s_wart00.xxw &ON_VALUE-CHANGED_OF_S_Artikel_archiviert_Post}
+  &GLOB {&PA-XBASISNAME}_ON_LEAVE_OF_S_ARTIKEL_ARTIKELART_PRE                  ~{stamm/proc/s_wart00.xxw &ON_LEAVE_OF_S_Artikel_ArtikelArt_Pre}
+  &GLOB {&PA-XBASISNAME}_ON_LEAVE_OF_S_ARTIKEL_ARTIKELART_POST                 ~{stamm/proc/s_wart00.xxw &ON_LEAVE_OF_S_Artikel_ArtikelArt_Post}
+  &GLOB {&PA-XBASISNAME}_ROW-AVAILABLE_VORLAUF                                 ~{stamm/proc/s_wart00.xxw &ROW-AVAILABLE_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_ROW-AVAILABLE_NACHLAUF                                ~{stamm/proc/s_wart00.xxw &ROW-AVAILABLE_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_DISPLAY-INFOFIELDS                                    ~{stamm/proc/s_wart00.xxw &Display-InfoFields}
+  &GLOB {&PA-XBASISNAME}_KOPIEREN                                              ~{stamm/proc/s_wart00.xxw &KOPIEREN}
+  &GLOB {&PA-XBASISNAME}_SNDKEYEND                                             ~{stamm/proc/s_wart00.xxw &SNDKEYEND}
+  &GLOB {&PA-XBASISNAME}_SENDRECORDSEND                                        ~{stamm/proc/s_wart00.xxw &SENDRECORDSEND}
+  &GLOB {&PA-XBASISNAME}_STATE-CHANGED                                         ~{stamm/proc/s_wart00.xxw &STATE-CHANGED}
+  &GLOB {&PA-XBASISNAME}_UISVCOBJECTSTATE                                      ~{stamm/proc/s_wart00.xxw &UISvcObjectState}
+    
+ &ENDIF
+/********
+</DEFINE-EXITS>
+
+<SORT>
+
+</SORT>
+
+<INCLUDE-TYPE>
+XX
+</INCLUDE-TYPE>
+
+<INCLUDE-NAME>
+s_wart00.xxw
+</INCLUDE-NAME>
+
+<PROCEDURE-NAME>
+s_wart00.w
+</PROCEDURE-NAME>
+ */
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CUSTOM _MAIN-BLOCK Include
+   
+      
+&IF DEFINED(DEFINITION) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+DEFINE BUTTON btTest
+    LABEL "SetDay"
+    SIZE 10 BY 1.2.
+    
+DEFINE VARIABLE cTimestamp AS CHARACTER NO-UNDO.
+    
+&ENDIF /* DEFINITION */   
+      
+&IF DEFINED(DM_SMA00_MAIN) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+  /* add Fields to a Viewer 
+  {adm/template/incl/dt_ind01.if
+    &Field1     = "<<<Columname>>>"
+    &Pred1      = "<<<Predecessor_to_the_positioning>>>"
+    &TabPred1   = "<<<<Predecessor_to_the_taborder>>>"
+    ...
+  }
+  */
+
+  /* Scale up Frame
+  {adm/template/incl/dt_ind05.if
+    &Function   = "Resize-Frame"
+    &Frame-Name = "{&FRAME-NAME}"
+    &ColDelta   = "0"
+    &RowDelta   = "3.5"
+  } */
+  
+
+&ENDIF /* DM_SMA00_MAIN */   
+      
+&IF DEFINED(PA_CCAPIGETINTERNALPROPERTY) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* pa_cCAPIGetInternalProperty */   
+      
+&IF DEFINED(SEND-WINDOW-TITLE_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* SEND-WINDOW-TITLE_NACHLAUF */   
+      
+&IF DEFINED(MAIN) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+DEFINE FRAME F-Main
+  btTest AT ROW 4 COL 83
+  WITH NO-BOX.
+
+ON 'CHOOSE':U OF btTest IN FRAME F-Main
+do:
+  if available S_Artikel and available S_ArtikelSpr then
+  do:
+    cTimestamp = STRING(DAY(TODAY)) + STRING(MONTH(TODAY)) + STRING(YEAR(TODAY))
+                 + "_" + STRING(TIME,"HH:MM:SS").
+
+    S_ArtikelSpr.Bezeichnung[4]:SCREEN-VALUE IN FRAME F-Main = string(S_Artikel.Artikel) + "_" + string(S_Artikel.ArtikelArt) + "_" + cTimestamp .
+
+  end.
+end.
+
+&ENDIF /* Main */   
+      
+&IF DEFINED(INITIALIZE_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Initialize_Vorlauf */   
+      
+&IF DEFINED(INITIALIZE_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Initialize_Nachlauf */   
+      
+&IF DEFINED(SETUP_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Setup_Vorlauf */   
+      
+&IF DEFINED(SETUP_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Setup_Nachlauf */   
+      
+&IF DEFINED(DISPLAY-FIELDS_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+
+&ENDIF /* DISPLAY-FIELDS_VORLAUF */   
+
+&IF DEFINED(DISPLAY-FIELDS_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+if available S_ArtikelSpr then
+do:
+  display btTest with frame F-Main.
+end.
+
+&ENDIF /* DISPLAY-FIELDS_NACHLAUF */   
+      
+&IF DEFINED(ADD-RECORD_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ADD-RECORD_VORLAUF */   
+      
+&IF DEFINED(ADD-RECORD_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ADD-RECORD_NACHLAUF */   
+      
+&IF DEFINED(ASSIGN-RECORD_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ASSIGN-RECORD_VORLAUF */   
+      
+&IF DEFINED(ASSIGN-RECORD_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ASSIGN-RECORD_NACHLAUF */   
+      
+&IF DEFINED(ASSIGN-STATEMENT_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ASSIGN-STATEMENT_VORLAUF */   
+      
+&IF DEFINED(ASSIGN-STATEMENT_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* assign-statement_Nachlauf */   
+      
+&IF DEFINED(DELETE-RECORD_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* DELETE-RECORD_VORLAUF */   
+      
+&IF DEFINED(DELETE-RECORD_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* DELETE-RECORD_NACHLAUF */   
+      
+&IF DEFINED(DELETE-STATEMENT_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* DELETE-STATEMENT_VORLAUF */   
+      
+&IF DEFINED(DELETE-STATEMENT_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* DELETE-STATEMENT_NACHLAUF */   
+      
+&IF DEFINED(DISABLE-FIELDS_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* DISABLE-FIELDS_NACHLAUF */   
+      
+&IF DEFINED(ENABLE-FIELDS_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+
+&ENDIF /* ENABLE-FIELDS_VORLAUF */   
+      
+&IF DEFINED(ENABLE-FIELDS_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+if available S_ArtikelSpr then
+do:
+  enable btTest btTest with frame F-Main.
+end.
+
+&ENDIF /* ENABLE-FIELDS_NACHLAUF */   
+      
+&IF DEFINED(END-UPDATE_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* END-UPDATE_VORLAUF */   
+      
+&IF DEFINED(END-UPDATE_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* END-UPDATE_NACHLAUF */   
+      
+&IF DEFINED(SML_RETRIEVECOMPANY) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* SML_RETRIEVECOMPANY */   
+      
+&IF DEFINED(UPDATE-RECORD_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* UPDATE-RECORD_NACHLAUF */   
+      
+&IF DEFINED(CHECK-RECORD) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* CHECK-RECORD */   
+      
+&IF DEFINED(HELPLIBMAIN) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* HelpLibMain */   
+      
+&IF DEFINED(HELP-BEGIN_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* HELP-BEGIN_VORLAUF */   
+      
+&IF DEFINED(HELP-BEGIN_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* HELP-BEGIN_NACHLAUF */   
+      
+&IF DEFINED(HELP-COMPLETE_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* HELP-COMPLETE_VORLAUF */   
+      
+&IF DEFINED(HELP-COMPLETE_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* HELP-COMPLETE_NACHLAUF */   
+      
+&IF DEFINED(OPEN-PDIALOG_FUELLE_TT_S_STAFFEL) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* open-PDialog_Fuelle_TT_S_Staffel */   
+      
+&IF DEFINED(ON_VALUE-CHANGED_OF_S_ARTIKEL_ARCHIVIERT_PRE) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_VALUE-CHANGED_OF_S_Artikel_archiviert_Pre */   
+      
+&IF DEFINED(ON_VALUE-CHANGED_OF_S_ARTIKEL_ARCHIVIERT_POST) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_VALUE-CHANGED_OF_S_Artikel_archiviert_Post */   
+      
+&IF DEFINED(ON_LEAVE_OF_S_ARTIKEL_ARTIKELART_PRE) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_LEAVE_OF_S_Artikel_ArtikelArt_Pre */   
+      
+&IF DEFINED(ON_LEAVE_OF_S_ARTIKEL_ARTIKELART_POST) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_LEAVE_OF_S_Artikel_ArtikelArt_Post */   
+      
+&IF DEFINED(ROW-AVAILABLE_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ROW-AVAILABLE_VORLAUF */   
+      
+&IF DEFINED(ROW-AVAILABLE_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ROW-AVAILABLE_NACHLAUF */   
+      
+&IF DEFINED(DISPLAY-INFOFIELDS) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Display-InfoFields */   
+      
+&IF DEFINED(KOPIEREN) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* KOPIEREN */   
+      
+&IF DEFINED(SNDKEYEND) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+/* additional send keys
+{adm/template/incl/sndkycas.i "<<<Key>>>" "<<<Tablename>>>" "<<<Columname>>>" "<<<Key-Include>>>"}
+*/
+
+&ENDIF /* SNDKEYEND */   
+      
+&IF DEFINED(SENDRECORDSEND) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+/* additional send records
+{adm/template/incl/snd-list.i "<<<Table>>>"}
+*/
+
+&ENDIF /* SENDRECORDSEND */   
+      
+&IF DEFINED(STATE-CHANGED) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+/*
+  when '<<<State>>>':U then do:
+
+    ...
+
+  end.
+  */
+
+&ENDIF /* STATE-CHANGED */   
+      
+&IF DEFINED(UISVCOBJECTSTATE) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* UISvcObjectState */
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME

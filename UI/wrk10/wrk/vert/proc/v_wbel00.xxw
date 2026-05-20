@@ -1,0 +1,588 @@
+&ANALYZE-SUSPEND _VERSION-NUMBER UIB_v8r2 GUI
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _XFTR "Update Information" Procedure _INLINE
+/* Actions: ? ? ? ? adm/support/proc/ds_pa_01.w */
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CUSTOM _DEFINITIONS Procedure
+/******************************************************************************/
+/* @COPYRIGHT@                                                                */
+/* Project: proALPHA                                                          */
+/*                                                                            */
+/* Name   : v_wbel00.xxw                                                      */
+/* Product: VERT - Vertrieb                                                   */
+/* Module : KERN - Kernfunktionen (alter Standard)                            */
+/*                                                                            */
+/* Created: 9.3.0 as of 11.07.2025/null                                       */
+/* Current: @PAVERSION@ as of @PADATE@/@PALASTAUTHOR@                         */
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+/* DESCRIPTION                                                                */
+/*----------------------------------------------------------------------------*/
+/*                                                                            */
+/* UserExits in v_wbel00.w                                                    */
+/*  Belegkopf (Search SmartViewer)                                            */
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+/* PARAMETERS                                                                 */
+/*----------------------------------------------------------------------------*/
+/* Name                      Description                                      */
+/*----------------------------------------------------------------------------*/
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+/* HISTORY                                                                    */
+/*----------------------------------------------------------------------------*/
+/* @FILEHISTORY@                                                              */
+/******************************************************************************/
+        
+
+/* Procedure Information -----------------------------------------------------*/
+
+&SCOPED-DEFINE pa-XIncBasisName     v_wbel00_xxw
+
+/* Parameters ----------------------------------------------------------------*/
+
+/* Globals -------------------------------------------------------------------*/
+
+&IF DEFINED(XX) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+  &IF DEFINED(PA-XINFO) > 0 &THEN
+    &SCOPED-DEFINE TEMP {&PA-XINFO} + '/':U
+    &UNDEFINE      PA-XINFO
+  &ELSE
+    &SCOPED-DEFINE TEMP '':U
+  &ENDIF
+  &GLOBAL-DEFINE   PA-XINFO {&TEMP} + 'v_wbel00.xxw/null':U
+&ENDIF
+
+/* SCOPEDs -------------------------------------------------------------------*/
+
+/* Variables -----------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+/* Buffers -------------------------------------------------------------------*/
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&ANALYZE-SUSPEND _UIB-PREPROCESSOR-BLOCK
+
+/* ********************  Preprocessor Definitions  ******************** */
+
+
+
+/* _UIB-PREPROCESSOR-BLOCK-END */
+&ANALYZE-RESUME
+
+
+
+/* *********************** Procedure Settings ************************ */
+
+&ANALYZE-SUSPEND _PROCEDURE-SETTINGS
+/* Settings for THIS-PROCEDURE
+   Type: Include Template
+   Allow:
+   Frames: 0
+   Add Fields to: Neither
+   Other Settings: INCLUDE-ONLY
+ */
+&ANALYZE-RESUME _END-PROCEDURE-SETTINGS
+
+/* *************************  Create Window  ************************** */
+
+&ANALYZE-SUSPEND _CREATE-WINDOW
+/* DESIGN Window definition (used by the UIB)
+  CREATE WINDOW Include ASSIGN
+         HEIGHT             = 6.52
+         WIDTH              = 51.4.
+/* END WINDOW DEFINITION */
+                                                                        */
+&ANALYZE-RESUME
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _XFTR "UpdateAlp" Include _INLINE
+/* Actions: ? ? ? ? adm/support/proc/ds_ind02.p */
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _XFTR "Exits" Include _INLINE
+/* Actions: ? adm/support/proc/ds_ind01.p ? ? ? */
+
+/* STRUCTURED-DATA
+
+<DEFINE-EXITS>
+********/
+
+ &IF DEFINED(XX) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+  &GLOB {&PA-XBASISNAME}_DEFINITION                                            ~{vert/proc/v_wbel00.xxw &DEFINITION}
+  &GLOB {&PA-XBASISNAME}_DM_SMA00_MAIN                                         ~{vert/proc/v_wbel00.xxw &DM_SMA00_MAIN}
+  &GLOB {&PA-XBASISNAME}_PA_CCAPIGETINTERNALPROPERTY                           ~{vert/proc/v_wbel00.xxw &pa_cCAPIGetInternalProperty}
+  &GLOB {&PA-XBASISNAME}_SEND-WINDOW-TITLE_NACHLAUF                            ~{vert/proc/v_wbel00.xxw &SEND-WINDOW-TITLE_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_MAIN                                                  ~{vert/proc/v_wbel00.xxw &Main}
+  &GLOB {&PA-XBASISNAME}_INITIALIZE_VORLAUF                                    ~{vert/proc/v_wbel00.xxw &Initialize_Vorlauf}
+  &GLOB {&PA-XBASISNAME}_INITIALIZE_NACHLAUF                                   ~{vert/proc/v_wbel00.xxw &Initialize_Nachlauf}
+  &GLOB {&PA-XBASISNAME}_SETUP_VORLAUF                                         ~{vert/proc/v_wbel00.xxw &Setup_Vorlauf}
+  &GLOB {&PA-XBASISNAME}_SETUP_NACHLAUF                                        ~{vert/proc/v_wbel00.xxw &Setup_Nachlauf}
+  &GLOB {&PA-XBASISNAME}_DISPLAY-FIELDS_VORLAUF                                ~{vert/proc/v_wbel00.xxw &DISPLAY-FIELDS_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_DISPLAY-FIELDS_NACHLAUF                               ~{vert/proc/v_wbel00.xxw &DISPLAY-FIELDS_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_ADD-RECORD_VORLAUF                                    ~{vert/proc/v_wbel00.xxw &ADD-RECORD_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_ADD-RECORD_NACHLAUF                                   ~{vert/proc/v_wbel00.xxw &ADD-RECORD_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_ASSIGN-RECORD_VORLAUF                                 ~{vert/proc/v_wbel00.xxw &ASSIGN-RECORD_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_ASSIGN-RECORD_NACHLAUF                                ~{vert/proc/v_wbel00.xxw &ASSIGN-RECORD_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_ASSIGN-STATEMENT_VORLAUF                              ~{vert/proc/v_wbel00.xxw &ASSIGN-STATEMENT_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_ASSIGN-STATEMENT_NACHLAUF                             ~{vert/proc/v_wbel00.xxw &assign-statement_Nachlauf}
+  &GLOB {&PA-XBASISNAME}_DELETE-RECORD_VORLAUF                                 ~{vert/proc/v_wbel00.xxw &DELETE-RECORD_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_DELETE-RECORD_NACHLAUF                                ~{vert/proc/v_wbel00.xxw &DELETE-RECORD_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_DELETE-STATEMENT_VORLAUF                              ~{vert/proc/v_wbel00.xxw &DELETE-STATEMENT_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_DISABLE-FIELDS_NACHLAUF                               ~{vert/proc/v_wbel00.xxw &DISABLE-FIELDS_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_ENABLE-FIELDS_VORLAUF                                 ~{vert/proc/v_wbel00.xxw &ENABLE-FIELDS_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_ENABLE-FIELDS_NACHLAUF                                ~{vert/proc/v_wbel00.xxw &ENABLE-FIELDS_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_SML_RETRIEVECOMPANY                                   ~{vert/proc/v_wbel00.xxw &SML_RETRIEVECOMPANY}
+  &GLOB {&PA-XBASISNAME}_UPDATE-RECORD_NACHLAUF                                ~{vert/proc/v_wbel00.xxw &UPDATE-RECORD_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_CHECK-RECORD                                          ~{vert/proc/v_wbel00.xxw &CHECK-RECORD}
+  &GLOB {&PA-XBASISNAME}_HELPLIBMAIN                                           ~{vert/proc/v_wbel00.xxw &HelpLibMain}
+  &GLOB {&PA-XBASISNAME}_HELP-BEGIN_VORLAUF                                    ~{vert/proc/v_wbel00.xxw &HELP-BEGIN_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_HELP-BEGIN_NACHLAUF                                   ~{vert/proc/v_wbel00.xxw &HELP-BEGIN_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_HELP-COMPLETE_VORLAUF                                 ~{vert/proc/v_wbel00.xxw &HELP-COMPLETE_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_HELP-COMPLETE_NACHLAUF                                ~{vert/proc/v_wbel00.xxw &HELP-COMPLETE_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_OPEN-PDIALOG_FUELLE_TT_S_STAFFEL                      ~{vert/proc/v_wbel00.xxw &open-PDialog_Fuelle_TT_S_Staffel}
+  &GLOB {&PA-XBASISNAME}_PRUEFESETBESTANDTEILE                                 ~{vert/proc/v_wbel00.xxw &PruefeSetBestandteile}
+  &GLOB {&PA-XBASISNAME}_SETBESTANDTEILE                                       ~{vert/proc/v_wbel00.xxw &SetBestandteile}
+  &GLOB {&PA-XBASISNAME}_ON_LEAVE_OF_V_BELEGKOPF_AUFTRAGSART_PRE               ~{vert/proc/v_wbel00.xxw &ON_LEAVE_OF_V_BelegKopf_AuftragsArt_Pre}
+  &GLOB {&PA-XBASISNAME}_ON_LEAVE_OF_V_BELEGKOPF_AUFTRAGSART_POST              ~{vert/proc/v_wbel00.xxw &ON_LEAVE_OF_V_BelegKopf_AuftragsArt_Post}
+  &GLOB {&PA-XBASISNAME}_ON_LEAVE_OF_V_BELEGKOPF_BELEGDATUM_PRE                ~{vert/proc/v_wbel00.xxw &ON_LEAVE_OF_V_BelegKopf_BelegDatum_Pre}
+  &GLOB {&PA-XBASISNAME}_ON_LEAVE_OF_V_BELEGKOPF_BELEGDATUM_POST               ~{vert/proc/v_wbel00.xxw &ON_LEAVE_OF_V_BelegKopf_BelegDatum_Post}
+  &GLOB {&PA-XBASISNAME}_ON_CHOOSE_OF_BTNUFREIGABE_PRE                         ~{vert/proc/v_wbel00.xxw &ON_CHOOSE_OF_btnuFreigabe_Pre}
+  &GLOB {&PA-XBASISNAME}_ON_CHOOSE_OF_BTNUFREIGABE_POST                        ~{vert/proc/v_wbel00.xxw &ON_CHOOSE_OF_btnuFreigabe_Post}
+  &GLOB {&PA-XBASISNAME}_ON_LEAVE_OF_V_BELEGKOPF_SACHBEARBEITER_PRE            ~{vert/proc/v_wbel00.xxw &ON_LEAVE_OF_V_BelegKopf_Sachbearbeiter_Pre}
+  &GLOB {&PA-XBASISNAME}_ON_LEAVE_OF_V_BELEGKOPF_SACHBEARBEITER_POST           ~{vert/proc/v_wbel00.xxw &ON_LEAVE_OF_V_BelegKopf_Sachbearbeiter_Post}
+  &GLOB {&PA-XBASISNAME}_ON_LEAVE_OF_V_BELEGKOPF_UANGEBOT_PRE                  ~{vert/proc/v_wbel00.xxw &ON_LEAVE_OF_V_BelegKopf_uAngebot_Pre}
+  &GLOB {&PA-XBASISNAME}_ON_LEAVE_OF_V_BELEGKOPF_UANGEBOT_POST                 ~{vert/proc/v_wbel00.xxw &ON_LEAVE_OF_V_BelegKopf_uAngebot_Post}
+  &GLOB {&PA-XBASISNAME}_ON_LEAVE_OF_V_BELEGKOPF_WIEDERVORLAGE_PRE             ~{vert/proc/v_wbel00.xxw &ON_LEAVE_OF_V_BelegKopf_Wiedervorlage_Pre}
+  &GLOB {&PA-XBASISNAME}_ON_LEAVE_OF_V_BELEGKOPF_WIEDERVORLAGE_POST            ~{vert/proc/v_wbel00.xxw &ON_LEAVE_OF_V_BelegKopf_Wiedervorlage_Post}
+  &GLOB {&PA-XBASISNAME}_ROW-AVAILABLE_VORLAUF                                 ~{vert/proc/v_wbel00.xxw &ROW-AVAILABLE_VORLAUF}
+  &GLOB {&PA-XBASISNAME}_ROW-AVAILABLE_NACHLAUF                                ~{vert/proc/v_wbel00.xxw &ROW-AVAILABLE_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_PRUEFE_INTRA_ARCHIV                                   ~{vert/proc/v_wbel00.xxw &Pruefe_Intra_Archiv}
+  &GLOB {&PA-XBASISNAME}_DISPLAY-INFOFIELDS                                    ~{vert/proc/v_wbel00.xxw &Display-InfoFields}
+  &GLOB {&PA-XBASISNAME}_INTRA_ARCHIV                                          ~{vert/proc/v_wbel00.xxw &Intra_Archiv}
+  &GLOB {&PA-XBASISNAME}_INTRA_CHECK                                           ~{vert/proc/v_wbel00.xxw &Intra_Check}
+  &GLOB {&PA-XBASISNAME}_ENABLE-FIELDS                                         ~{vert/proc/v_wbel00.xxw &ENABLE-FIELDS}
+  &GLOB {&PA-XBASISNAME}_LOCAL-INITIALIZE                                      ~{vert/proc/v_wbel00.xxw &local-initialize}
+  &GLOB {&PA-XBASISNAME}_LOCALPRINTCURRENT_DEFINITION                          ~{vert/proc/v_wbel00.xxw &LocalPrintCurrent_Definition}
+  &GLOB {&PA-XBASISNAME}_LOCALPRINTCURRENT                                     ~{vert/proc/v_wbel00.xxw &LocalPrintCurrent}
+  &GLOB {&PA-XBASISNAME}_LOCALPRINTCURRENT_PARAMETER                           ~{vert/proc/v_wbel00.xxw &LocalPrintCurrent_Parameter}
+  &GLOB {&PA-XBASISNAME}_SUBJECT                                               ~{vert/proc/v_wbel00.xxw &Subject}
+  &GLOB {&PA-XBASISNAME}_SNDKEYEND                                             ~{vert/proc/v_wbel00.xxw &SNDKEYEND}
+  &GLOB {&PA-XBASISNAME}_SENDRECORDSEND                                        ~{vert/proc/v_wbel00.xxw &SENDRECORDSEND}
+  &GLOB {&PA-XBASISNAME}_STATE-CHANGED                                         ~{vert/proc/v_wbel00.xxw &STATE-CHANGED}
+  &GLOB {&PA-XBASISNAME}_UISVCOBJECTSTATE                                      ~{vert/proc/v_wbel00.xxw &UISvcObjectState}
+    
+ &ENDIF
+/********
+</DEFINE-EXITS>
+
+<SORT>
+
+</SORT>
+
+<INCLUDE-TYPE>
+XX
+</INCLUDE-TYPE>
+
+<INCLUDE-NAME>
+v_wbel00.xxw
+</INCLUDE-NAME>
+
+<PROCEDURE-NAME>
+v_wbel00.w
+</PROCEDURE-NAME>
+ */
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CUSTOM _MAIN-BLOCK Include
+   
+      
+&IF DEFINED(DEFINITION) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+define variable cCountPos as character no-undo.
+define variable iCount    as integer   no-undo.
+define variable iACM      as integer   no-undo.
+
+&ENDIF /* DEFINITION */   
+      
+&IF DEFINED(DM_SMA00_MAIN) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+  /* add Fields to a Viewer */
+  {adm/template/incl/dt_ind01.if
+    &Frame-Name = "F-Main"
+    &Field1     = "cCountPos"
+    &Pred1      = "VBM_PreConfigVariant_Obj"
+    &TabPred1   = "VBM_PreConfigVariant_Obj"
+    &Label1     = "label 'Cout Pos.'"
+    ...
+  }
+
+  /* Scale up Frame
+  {adm/template/incl/dt_ind05.if
+    &Function   = "Resize-Frame"
+    &Frame-Name = "{&FRAME-NAME}"
+    &ColDelta   = "0"
+    &RowDelta   = "1.25"
+  }
+  */
+
+&ENDIF /* DM_SMA00_MAIN */   
+      
+&IF DEFINED(PA_CCAPIGETINTERNALPROPERTY) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* pa_cCAPIGetInternalProperty */   
+      
+&IF DEFINED(SEND-WINDOW-TITLE_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* SEND-WINDOW-TITLE_NACHLAUF */   
+      
+&IF DEFINED(MAIN) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+PROCEDURE pPositions:
+
+  if available V_BelegKopf then
+  do:
+    for each V_BelegPos
+      where V_BelegPos.Firma       = {firma/vbelegko.fir '100':U}
+        and V_BelegPos.BelegArt     = V_BelegKopf.BelegArt
+        and V_BelegPos.ReferenzNr   = V_BelegKopf.ReferenzNr
+        and V_BelegPos.LfdNr_SR     = 0
+      no-lock:
+
+      iCount = iCount + 1.
+
+    end.
+
+    assign
+      cCountPos = string(iCount)
+      iCount    = 0
+      cCountPos:screen-value in frame F-Main = cCountPos
+      iACM = adm.config.cls.DCCAppConfigSvc:prpoInstance:iParameterValue('X_ArftargCountPos':U)
+      .
+
+    if integer(cCountPos) > iACM then
+      adm.method.cls.DMCUISvc:SetWidgetColor
+      (cCountPos:handle in frame F-Main,
+       'bgcolor':U,
+       'DM_ColorPool_red_1':U).
+  end.
+  
+END PROCEDURE.
+
+&ENDIF /* Main */   
+      
+&IF DEFINED(INITIALIZE_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Initialize_Vorlauf */   
+      
+&IF DEFINED(INITIALIZE_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Initialize_Nachlauf */   
+      
+&IF DEFINED(SETUP_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Setup_Vorlauf */   
+      
+&IF DEFINED(SETUP_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Setup_Nachlauf */   
+      
+&IF DEFINED(DISPLAY-FIELDS_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+adm.method.cls.DMCUISvc:SetWidgetColor
+      (cCountPos:handle in frame F-Main,
+       'bgcolor':U,
+       '':U).
+
+&ENDIF /* DISPLAY-FIELDS_VORLAUF */   
+      
+&IF DEFINED(DISPLAY-FIELDS_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+cCountPos:screen-value in frame F-Main = ''.
+
+&ENDIF /* DISPLAY-FIELDS_NACHLAUF */   
+      
+&IF DEFINED(ADD-RECORD_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ADD-RECORD_VORLAUF */   
+      
+&IF DEFINED(ADD-RECORD_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ADD-RECORD_NACHLAUF */   
+      
+&IF DEFINED(ASSIGN-RECORD_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ASSIGN-RECORD_VORLAUF */   
+      
+&IF DEFINED(ASSIGN-RECORD_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ASSIGN-RECORD_NACHLAUF */   
+      
+&IF DEFINED(ASSIGN-STATEMENT_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ASSIGN-STATEMENT_VORLAUF */   
+      
+&IF DEFINED(ASSIGN-STATEMENT_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* assign-statement_Nachlauf */   
+      
+&IF DEFINED(DELETE-RECORD_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* DELETE-RECORD_VORLAUF */   
+      
+&IF DEFINED(DELETE-RECORD_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* DELETE-RECORD_NACHLAUF */   
+      
+&IF DEFINED(DELETE-STATEMENT_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* DELETE-STATEMENT_VORLAUF */   
+      
+&IF DEFINED(DISABLE-FIELDS_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* DISABLE-FIELDS_NACHLAUF */   
+      
+&IF DEFINED(ENABLE-FIELDS_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ENABLE-FIELDS_VORLAUF */   
+      
+&IF DEFINED(ENABLE-FIELDS_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ENABLE-FIELDS_NACHLAUF */   
+      
+&IF DEFINED(SML_RETRIEVECOMPANY) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* SML_RETRIEVECOMPANY */   
+      
+&IF DEFINED(UPDATE-RECORD_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* UPDATE-RECORD_NACHLAUF */   
+      
+&IF DEFINED(CHECK-RECORD) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* CHECK-RECORD */   
+      
+&IF DEFINED(HELPLIBMAIN) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* HelpLibMain */   
+      
+&IF DEFINED(HELP-BEGIN_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* HELP-BEGIN_VORLAUF */   
+      
+&IF DEFINED(HELP-BEGIN_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* HELP-BEGIN_NACHLAUF */   
+      
+&IF DEFINED(HELP-COMPLETE_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* HELP-COMPLETE_VORLAUF */   
+      
+&IF DEFINED(HELP-COMPLETE_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* HELP-COMPLETE_NACHLAUF */   
+      
+&IF DEFINED(OPEN-PDIALOG_FUELLE_TT_S_STAFFEL) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* open-PDialog_Fuelle_TT_S_Staffel */   
+      
+&IF DEFINED(PRUEFESETBESTANDTEILE) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* PruefeSetBestandteile */   
+      
+&IF DEFINED(SETBESTANDTEILE) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* SetBestandteile */   
+      
+&IF DEFINED(ON_LEAVE_OF_V_BELEGKOPF_AUFTRAGSART_PRE) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_LEAVE_OF_V_BelegKopf_AuftragsArt_Pre */   
+      
+&IF DEFINED(ON_LEAVE_OF_V_BELEGKOPF_AUFTRAGSART_POST) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_LEAVE_OF_V_BelegKopf_AuftragsArt_Post */   
+      
+&IF DEFINED(ON_LEAVE_OF_V_BELEGKOPF_BELEGDATUM_PRE) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_LEAVE_OF_V_BelegKopf_BelegDatum_Pre */   
+      
+&IF DEFINED(ON_LEAVE_OF_V_BELEGKOPF_BELEGDATUM_POST) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_LEAVE_OF_V_BelegKopf_BelegDatum_Post */   
+      
+&IF DEFINED(ON_CHOOSE_OF_BTNUFREIGABE_PRE) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_CHOOSE_OF_btnuFreigabe_Pre */   
+      
+&IF DEFINED(ON_CHOOSE_OF_BTNUFREIGABE_POST) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_CHOOSE_OF_btnuFreigabe_Post */   
+      
+&IF DEFINED(ON_LEAVE_OF_V_BELEGKOPF_SACHBEARBEITER_PRE) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_LEAVE_OF_V_BelegKopf_Sachbearbeiter_Pre */   
+      
+&IF DEFINED(ON_LEAVE_OF_V_BELEGKOPF_SACHBEARBEITER_POST) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_LEAVE_OF_V_BelegKopf_Sachbearbeiter_Post */   
+      
+&IF DEFINED(ON_LEAVE_OF_V_BELEGKOPF_UANGEBOT_PRE) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_LEAVE_OF_V_BelegKopf_uAngebot_Pre */   
+      
+&IF DEFINED(ON_LEAVE_OF_V_BELEGKOPF_UANGEBOT_POST) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_LEAVE_OF_V_BelegKopf_uAngebot_Post */   
+      
+&IF DEFINED(ON_LEAVE_OF_V_BELEGKOPF_WIEDERVORLAGE_PRE) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_LEAVE_OF_V_BelegKopf_Wiedervorlage_Pre */   
+      
+&IF DEFINED(ON_LEAVE_OF_V_BELEGKOPF_WIEDERVORLAGE_POST) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ON_LEAVE_OF_V_BelegKopf_Wiedervorlage_Post */   
+      
+&IF DEFINED(ROW-AVAILABLE_VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ROW-AVAILABLE_VORLAUF */   
+      
+&IF DEFINED(ROW-AVAILABLE_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ROW-AVAILABLE_NACHLAUF */   
+      
+&IF DEFINED(PRUEFE_INTRA_ARCHIV) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Pruefe_Intra_Archiv */   
+      
+&IF DEFINED(DISPLAY-INFOFIELDS) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Display-InfoFields */   
+      
+&IF DEFINED(INTRA_ARCHIV) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Intra_Archiv */   
+      
+&IF DEFINED(INTRA_CHECK) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Intra_Check */   
+      
+&IF DEFINED(ENABLE-FIELDS) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* ENABLE-FIELDS */   
+      
+&IF DEFINED(LOCAL-INITIALIZE) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* local-initialize */   
+      
+&IF DEFINED(LOCALPRINTCURRENT_DEFINITION) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* LocalPrintCurrent_Definition */   
+      
+&IF DEFINED(LOCALPRINTCURRENT) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* LocalPrintCurrent */   
+      
+&IF DEFINED(LOCALPRINTCURRENT_PARAMETER) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* LocalPrintCurrent_Parameter */   
+      
+&IF DEFINED(SUBJECT) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Subject */   
+      
+&IF DEFINED(SNDKEYEND) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+/* additional send keys
+{adm/template/incl/sndkycas.i "<<<Key>>>" "<<<Tablename>>>" "<<<Columname>>>" "<<<Key-Include>>>"}
+*/
+
+&ENDIF /* SNDKEYEND */   
+      
+&IF DEFINED(SENDRECORDSEND) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+/* additional send records
+{adm/template/incl/snd-list.i "<<<Table>>>"}
+*/
+
+&ENDIF /* SENDRECORDSEND */   
+      
+&IF DEFINED(STATE-CHANGED) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+/*
+  when '<<<State>>>':U then do:
+
+    ...
+
+  end.
+  */
+
+&ENDIF /* STATE-CHANGED */   
+      
+&IF DEFINED(UISVCOBJECTSTATE) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* UISvcObjectState */
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME

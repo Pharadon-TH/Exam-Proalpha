@@ -1,0 +1,201 @@
+&ANALYZE-SUSPEND _VERSION-NUMBER UIB_v8r2 GUI
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _XFTR "Update Information" Procedure _INLINE
+/* Actions: ? ? ? ? adm/support/proc/ds_pa_01.w */
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CUSTOM _DEFINITIONS Procedure
+/******************************************************************************/
+/* @COPYRIGHT@                                                                */
+/* Project: Proalpha                                                          */
+/*                                                                            */
+/* Name   : s_artikw.xxp                                                      */
+/* Product: STAMM - Übergreifende Stammdaten                                  */
+/* Module : KERN - Kernfunktionen (alter Standard)                            */
+/*                                                                            */
+/* Created: 9.5.0 as of 30.07.2025/null                                       */
+/* Current: @PAVERSION@ as of @PADATE@/@PALASTAUTHOR@                         */
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+/* DESCRIPTION                                                                */
+/*----------------------------------------------------------------------------*/
+/*                                                                            */
+/* UserExits in s_artikw.p                                                    */
+/*  S_Artikel (DB Trigger Update)                                             */
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+/* PARAMETERS                                                                 */
+/*----------------------------------------------------------------------------*/
+/* Name                      Description                                      */
+/*----------------------------------------------------------------------------*/
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+/* HISTORY                                                                    */
+/*----------------------------------------------------------------------------*/
+/* @FILEHISTORY@                                                              */
+/******************************************************************************/
+        
+
+/* Procedure Information -----------------------------------------------------*/
+
+&SCOPED-DEFINE pa-XIncBasisName     s_artikw_xxp
+
+/* Parameters ----------------------------------------------------------------*/
+
+/* Globals -------------------------------------------------------------------*/
+
+&IF DEFINED(XX) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+  &IF DEFINED(PA-XINFO) > 0 &THEN
+    &SCOPED-DEFINE TEMP {&PA-XINFO} + '/':U
+    &UNDEFINE      PA-XINFO
+  &ELSE
+    &SCOPED-DEFINE TEMP '':U
+  &ENDIF
+  &GLOBAL-DEFINE   PA-XINFO {&TEMP} + 's_artikw.xxp/null':U
+&ENDIF
+
+/* SCOPEDs -------------------------------------------------------------------*/
+
+/* Variables -----------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+/* Buffers -------------------------------------------------------------------*/
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+
+&ANALYZE-SUSPEND _UIB-PREPROCESSOR-BLOCK
+
+/* ********************  Preprocessor Definitions  ******************** */
+
+
+
+/* _UIB-PREPROCESSOR-BLOCK-END */
+&ANALYZE-RESUME
+
+
+
+/* *********************** Procedure Settings ************************ */
+
+&ANALYZE-SUSPEND _PROCEDURE-SETTINGS
+/* Settings for THIS-PROCEDURE
+   Type: Include Template
+   Allow:
+   Frames: 0
+   Add Fields to: Neither
+   Other Settings: INCLUDE-ONLY
+ */
+&ANALYZE-RESUME _END-PROCEDURE-SETTINGS
+
+/* *************************  Create Window  ************************** */
+
+&ANALYZE-SUSPEND _CREATE-WINDOW
+/* DESIGN Window definition (used by the UIB)
+  CREATE WINDOW Include ASSIGN
+         HEIGHT             = 6.52
+         WIDTH              = 51.4.
+/* END WINDOW DEFINITION */
+                                                                        */
+&ANALYZE-RESUME
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _XFTR "UpdateAlp" Include _INLINE
+/* Actions: ? ? ? ? adm/support/proc/ds_ind02.p */
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _XFTR "Exits" Include _INLINE
+/* Actions: ? adm/support/proc/ds_ind01.p ? ? ? */
+
+/* STRUCTURED-DATA
+
+<DEFINE-EXITS>
+********/
+
+ &IF DEFINED(XX) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+  &GLOB {&PA-XBASISNAME}_DEFINITION                                            ~{stamm/trigger/s_artikw.xxp &DEFINITION}
+  &GLOB {&PA-XBASISNAME}_PA_CCAPIGETINTERNALPROPERTY                           ~{stamm/trigger/s_artikw.xxp &pa_cCAPIGetInternalProperty}
+  &GLOB {&PA-XBASISNAME}_SEND-WINDOW-TITLE_NACHLAUF                            ~{stamm/trigger/s_artikw.xxp &SEND-WINDOW-TITLE_NACHLAUF}
+  &GLOB {&PA-XBASISNAME}_MAIN                                                  ~{stamm/trigger/s_artikw.xxp &Main}
+  &GLOB {&PA-XBASISNAME}_VORLAUF                                               ~{stamm/trigger/s_artikw.xxp &Vorlauf}
+  &GLOB {&PA-XBASISNAME}_NACHLAUF                                              ~{stamm/trigger/s_artikw.xxp &Nachlauf}
+  &GLOB {&PA-XBASISNAME}_NEUANLAGE                                             ~{stamm/trigger/s_artikw.xxp &Neuanlage}
+  &GLOB {&PA-XBASISNAME}_AENDERN                                               ~{stamm/trigger/s_artikw.xxp &Aendern}
+  &GLOB {&PA-XBASISNAME}_INTRA                                                 ~{stamm/trigger/s_artikw.xxp &Intra}
+    
+ &ENDIF
+/********
+</DEFINE-EXITS>
+
+<SORT>
+
+</SORT>
+
+<INCLUDE-TYPE>
+XX
+</INCLUDE-TYPE>
+
+<INCLUDE-NAME>
+s_artikw.xxp
+</INCLUDE-NAME>
+
+<PROCEDURE-NAME>
+s_artikw.p
+</PROCEDURE-NAME>
+ */
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
+
+&ANALYZE-SUSPEND _UIB-CODE-BLOCK _CUSTOM _MAIN-BLOCK Include
+   
+      
+&IF DEFINED(DEFINITION) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* DEFINITION */   
+      
+&IF DEFINED(PA_CCAPIGETINTERNALPROPERTY) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* pa_cCAPIGetInternalProperty */   
+      
+&IF DEFINED(SEND-WINDOW-TITLE_NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* SEND-WINDOW-TITLE_NACHLAUF */   
+      
+&IF DEFINED(MAIN) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Main */   
+      
+&IF DEFINED(VORLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Vorlauf */   
+      
+&IF DEFINED(NACHLAUF) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Nachlauf */   
+      
+&IF DEFINED(NEUANLAGE) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Neuanlage */   
+      
+&IF DEFINED(AENDERN) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Aendern */   
+      
+&IF DEFINED(INTRA) = 2 or defined (PA-XBASISNAME) = 0 &THEN
+
+
+&ENDIF /* Intra */
+
+/* _UIB-CODE-BLOCK-END */
+&ANALYZE-RESUME
