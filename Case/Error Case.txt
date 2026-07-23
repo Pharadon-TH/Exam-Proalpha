@@ -1,0 +1,330 @@
+SN-4
+
+Case
+ปัญหาคือกดสร้างหรือแก้ไข Lagreort จากหน้า Teile ไม่ได้ เนื่องจากไม่มีตำแหน่งจัดเก็บที่มีหมายเลข ‘0’ ถูกสร้างขึ้น ทั้งทื่มีข้อมูลอยู่ใน Browser
+
+Reproduce Bug 
+Teile > [Funktion] Lagerorte > Create new record then save. 
+มีความเกี่ยวโยงกับ Trigger mlmstpdw.p
+
+แก้ใน mlmstpdw.p
+บรรทัด
+
+/* --> Original
+
+  find ML_Ort                                                         
+   where ML_Ort.Firma    = {firma/mlort.fir MLM_StorPartData.Company}
+     and ML_Ort.Lagerort = ?                                         
+   no-lock no-error.                                                 
+                                                                     
+  if not available ML_Ort then                                        
+                                                                      
+    adm.method.cls.DMCMessageSvc:prpoInstance:showError               
+      ('mltrg00224':U,                                                
+       S_Artikel.Artikel,                                             
+       string(MLM_StorPartData.Storagearea)).                         
+
+    /* Message: {Teil} '&1':                                                  */
+    /*          Es ist kein Lagerort mit der Nummer '&2' angelegt!            */
+    /*          {Der Vorgang wird abgebrochen.}                               */
+    
+--> Original */
+  
+  /* --> SN-4 */   
+  find ML_Ort
+    where ML_Ort.Firma    = {firma/mlort.fir MLM_StorPartData.Company}
+      and ML_Ort.Lagerort = MLM_StorPartData.Storagearea
+    no-lock no-error.
+  
+  if not available ML_Ort then
+  
+    adm.method.cls.DMCMessageSvc:prpoInstance:showError
+      ('mltrg00224':U,
+       S_Artikel.Artikel,
+       string(MLM_StorPartData.Storagearea)).      
+  /* <-- SN-4 */
+
+----------------------------------------------------------
+
+SN-3
+
+Case
+เปิดหน้า Teile ผ่าน Kunde -> [Funktion] Teile ไม่ได้
+
+Reproduce Bug
+คีย์ 'Customer' ไม่ได้รับการสนับสนุนในโปรแกรม 'stamm/proc/s_wkun00.w'!
+วัตถุร้องขอคีย์ที่ระบุจากโปรแกรม แต่คีย์นี้ไม่ได้ให้มา
+
+แก้ใน s_wkun00.w ตรง PROCEDURE send-key :
+/* --> SN-3 */
+{adm/template/incl/sndkycas.i "Kunde" "S_Kunde" "Kunde" " "}
+/* <-- SN-3 */
+
+----------------------------------------------------------
+
+SN-5
+Case
+ค่า V_BelegPos.Einzelpreis ถูกเซ็ตเป็น 0 เสมอ ทั้งที่ความจริงมันควรจะใส่ค่าได้ และ อิงตามค่า default ตอนสร้าง
+
+Reproduce Bug 
+ติดปัญหาค่า Einzelpreis ถูกเซ็ตเป็น 0
+
+แก้ใน v_wbel33.w ตรง local-assign-record 
+หา Einzelpreis ดูจะพบ
+
+/*if V_BelegPos.BelegArt = 'U':U then                */
+/*  {setwidgetattr                                   */
+/*     "V_BelegPos.Einzelpreis"                      */
+/*     "screen-value"                                */
+/*     "string({&pa_P_CostItemStructure_FirstLevel})"*/
+/*     "in frame {&frame-name}"}.                    */
+/*  message {&pa_P_CostItemStructure_FirstLevel} .   */
+
+----------------------------------------------------------
+
+SN-6
+Case
+ปุ่ม Print ไม่แสดง ตลอดเวลา 
+
+Reproduce Bug 
+มีการเซ็ต disable สักที่ ใน container
+
+แก้ใน e_pwe_00.w ตรง PROCEDURE local-initialize : จะเจอ
+
+/*if valid-object (goUIProcedure:prpoWindow:prpoToolbar) then           */
+/*    goUIProcedure:prpoWindow:prpoToolbar:disableButton('Btn_Print':U).*/
+
+----------------------------------------------------------
+
+SN-2
+Case 
+adopting ข้อมูลจาก R ไป U ไม่่ได้ ขึ้น Error 
+
+Reproduce Bug
+ต้องไล่เช็คจาก error message ว่าพังตรงไหน 
+
+แก้ใน v_pbel20.w ตรง
+
+run BelegUebernahme in h_v_bbel20 (V_BelegKopf.Driver_Obj,
+                                     &IF LOOKUP("U_CI","{&PA-OPTIONEN}") > 0 &THEN
+                                     gcPreConfigVariant,
+                                     glGenerateProject,
+                                     glGenerateCRO,
+                                     /* SN-2 */
+                                     gcPCVShortDesc,                                      
+                                     &ENDIF
+                                     input-output table ttVBT_DocumentLines-NEW bind,
+                                     input-output table ttVBT_SalesBOM-NEW bind).
+
+----------------------------------------------------------
+8:54 - 9:07 = 00.15 hsr
+
+SN-1
+Case
+adopt ข้อมูลจาก Bestellung มาใส่ใน Wareneingang แล้วรันผ่านแต่เช็คใน Wareneingangpositien มันไม่มีค่าอะไรเลย
+
+Reproduce Bug
+ไม่มี error message เด้งอะไรเลยรู้แค่ว่ากดปุ่ม OK แล้วมันต้องมี Bug อะไรสักอย่างที่ทำให้ค่า Wareneingangpositien ไม่มี
+
+วิธีแก้
+ให้หาจาก Container e_uwe_11.w ก่อนว่าปุ่ม Btn_OK มันทำอะไรบ้าง เจอว่ามันรัน commitInput ก็ไปเช็คต่อว่าใน commitInput ใช้อะไรบ้าง แล้วเจออยู่ 2 ตัว run CheckPackageFromAllPositions in h_e_bbue11 (output plError). กับ run Erzeuge-WEPositionen in h_e_bbue11 (goPackaging, output plLoesch) no-error.
+
+เช็คต่อใน Erzeuge-WEPositionen ว่ามีอะไรบ้าง  ค้นหา Position 
+/* --> SN-1 */
+/*      find S_Artikel                                                               */
+/*        where S_Artikel.Firma   = {firma/sartikel.fir pACConnectionSvc:prpcCompany}*/
+/*          and S_Artikel.Artikel = '?':U                                            */
+/*        no-lock no-error.                                                          */
+/*                                                                                   */
+/*      message 4 available S_Artikel.                                               */
+/*                                                                                   */
+/*      if not available S_Artikel then                                              */
+/*        leave Main.                                                                */
+/* <-- SN-1 */ 
+
+----------------------------------------------------------
+9:07 - 9:41 = 00.35 hsr
+
+SN-7
+Case 
+เปิดหน้า  Lagerbewegungen ในหน้า Lager Zu ไม่ได้แถมฟ้องว่าเปิด imbbew01.w 
+
+Reproduce Bug
+ลองหาก่่อนว่าไฟล์ imbbew01.w เป็นยังไง สรุปคือไม่มีไฟล์ imbbew01.w อยู่จริง 
+
+วิธีแก้
+เช็คใน Menu Design ไปเช็คในปุ่ม Info Lagerbewegungen ว่ามันเรียกไฟล์ตัวไหนสรุปเจอ imibew05.w
+
+CASE adm-current-page:
+
+    WHEN 0 THEN DO:
+       RUN init-object IN THIS-PROCEDURE (
+             /* --> Original 
+             INPUT  'info/mawi/proc/imbbew01.w':U ,
+                --> Original */ 
+             /* SN-7 */   
+             INPUT  'info/mawi/proc/imbbew05.w':U ,
+
+----------------------------------------------------------
+11:24 - 12:37 = 00:44 hsr พักเที่ยงแล้วทำต่อตอน 12:26
+
+SS-1
+Case
+Field มัน over size ไปจากปกติและ Tap bar ตรงกลางถูกปิดไว้ด้วย
+
+Reproduce Bug
+เรียก AB ไฟล์ Contianer หน้า Lieferant ดูก่อนว่ามีอะไรผิดแปลก
+
+แก้ไข 
+เจอสิ่งปกติ 2 ที่ ใน s_wlie00.w 
+ใน F-Main:FRAME
+/* --> Original
+/*     S_Adresse.Telefax AT ROW 5 COL 161 COLON-ALIGNED*/
+/*          VIEW-AS FILL-IN                            */
+/*          SIZE 28 BY 1                               */
+   <-- Original */ 
+      
+     /* SS-1 */         
+     S_Adresse.Telefax AT ROW 5 COL 81 COLON-ALIGNED
+          VIEW-AS FILL-IN 
+          SIZE 28 BY 1
+ใน local-display-fields 
+/* SS-1 */
+/*  {adm/template/incl/dt_ind05.if                    */
+/*    &Function   = "Resize-Frame"                    */
+/*    &Frame-Name = "{&FRAME-NAME}"                   */
+/*    &ColDelta   = "0"                               */
+/*    &RowDelta   = "1"                               */
+/*  }                                                 */
+/*                                                    */
+/*{fnarg                                              */
+/*   pa_lUISvcSetWidgetHiddenState                    */
+/*   "S_Adresse.Telefax:handle in frame {&FRAME-NAME},*/
+/*    yes"}.                                          */
+
+----------------------------------------------------------
+12.37 - 1.56 = 00.20 hsr
+
+TK_1
+Case 
+Field EA_AnfKopf.AnlageBenutzer ทับกับ  EA_AnfKopf.Wiedervorlage อยู่
+
+Reproduce Bug
+ไปเช็คใน F-Main:FRAME เจอว่าค่าผิดปกติอยู่
+
+แก้ไขใน eawanf00.w
+
+/* Original */
+/*     EA_AnfKopf.AnlageBenutzer AT ROW 3.5 COL 91 COLON-ALIGNED*/
+/*          VIEW-AS FILL-IN                                     */
+/*          SIZE 16 BY 1                                        */
+     /*TK-1*/
+     EA_AnfKopf.AnlageBenutzer AT ROW 4.5 COL 81 COLON-ALIGNED
+          VIEW-AS FILL-IN 
+          SIZE 16 BY 1   
+
+----------------------------------------------------------
+13.33 - 15.00 = 1.30 hsr
+
+TC-4
+Case 
+Print เอกสารแล้วค่า Teile ไม่ออก
+
+แก้ใน s_dart00.w ตรง assignData
+/* TC-4 */
+{adm/incl/d__par00.if
+    &Parameter      = "Artikel"
+    &ParameterListe = "pcParamListe"
+    &Variable1      = "Artikel_min"
+    &Variable2      = "Artikel_max"
+}
+
+----------------------------------------------------------
+15.01 - ได้ทำจริงตอน 15.35  พี่เกมไม่ได้ลงไฟล์ให้
+update เริ่ม 16.20 3/7/2026 - เริ่มต่อ 8.35 - 9.58 = 02.20 hsr
+NC-1
+Case
+ไม่สามารถลด/เพิ่มค่า Menge ใน Liefershienposition ได้
+
+Reproduce Bug
+เช็คจาก Log พบว่าพังใน Lagerbuchung ต้องหาก่อนว่าไฟล์ไหนเรียก Lagerbuchung 
+
+แก้ไข
+เจอ Lagerbuchung ใน v_belpow.p แล้วต้องเช็คต่อว่ามันเข้าอะไรบ้าง พบว่า
+find last bML_Ort
+              where bML_Ort.Firma    = {firma/mlort.fir V_BelegPos.Firma}
+              no-lock.
+เป็นตัวทำให้บัค แก้เป็น
+find bML_Ort
+  where bML_Ort.Firma    = {firma/mlort.fir V_BelegPos.Firma}
+     and bML_Ort.LagerOrt = V_BelegPos.LagerOrt
+  no-lock no-error.
+            
+if not available bML_Ort then  
+   find last bML_Ort
+      where bML_Ort.Firma    = {firma/mlort.fir V_BelegPos.Firma}
+   no-lock.
+
+
+----------------------------------------------------------
+13.00 - 15.08 = 2.08 hr. ยังไม่สมบูรณ์
+ 
+NC-1.1
+Case 
+ไม่สามารถลด Menge ใน Liefershienposition ได้
+เงื่อนไขเพิ่มเติมถ้าค่า Menge LargerOrt จะถูกส่งไปจัดเก็บใน LargerOrt ตัวสุดท้าย
+
+Reproduce Bug
+เมื่อลด Menge จะติดเงื่อนไข Reservation (การจอง) ซึ่งตามหลักแล้วการจะย้ายสต็อกสินค้าไปเก็บที่อื่นจะต้องเกิดการจองก่อน 
+
+วิธีแก้เข้าไปแก้ใน StockReceipt ใน MMCMaterialPostingSvo.cls
+
+
+-----------------------------------------------------------
+TC-2 ทำ 10.40 - 11.52 = 01.12 hrs.
+
+Case 
+ปริ้นหน้า Angebot ไม่ได้
+
+Rebuce Case
+มีปัญหาที่ vbjbel00.p 
+
+แก้ไข 
+เพิ่ม cPKS ใน fillDataset
+/* --> TC-2 Thongdi.P 13/07/2026 */                       
+cPKS               = adm.method.cls.DMCSessionSvc:cGetObjectPropertyPKS
+                   	 (dataset dsV_BelegKopf-P:handle,
+                       	   'Context':U)  
+/* <-- TC-2 Thongdi.P 13/07/2026 */  
+
+
+-----------------------------------------------------------
+TC-3 ทำ 13.41 - 13.51 = 00.10 hrs.
+
+Case
+Kunde หายไปจาก Folder Formular VUU
+
+Rebuce Debug 
+Kunde ถูกลบออกไปจากโฟลเดอร์
+
+วิธีแก้
+add Kunde เพิ่มเข้าไปในโฟล์เดอร์ เลือกเป็น ttS_Kunde-P1
+
+
+-----------------------------------------------------------
+TC-1 ทำ 14:06 - 14:10 = 00.04 hrs.
+
+Case
+เปิดหน้า Design จากหน้า Formular ไม่ได้
+
+Rebuce Bug
+Error ฟ้อง ข้อมูลไม่ match กัน
+
+แก้ไข
+ในไฟล์ vs_cal10.pds เพิ่มตรงส่วน /* Customer */ เพิ่ม
+
+data-relation dri_CustomerAddress for ttS_Kunde-P1,ttS_Adresse-PCust
+       relation-fields (Firma,Firma,
+                        AdressNr,AdressNr) nested
+
+
