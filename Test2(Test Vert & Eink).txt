@@ -1,0 +1,155 @@
+/*
+Exam : Vert & Eink
+
+List all Auftrag (U) documents that are linked to only one Bestellung (EB) and check whether the purchased items have already been received in Wareneingang (EWE).
+The result should show each Auftrag position, the related Bestellung, and the received quantity from Wareneingang.
+
+Export to CSV file ;
+BelegNummer U ; Position U ; Artikel ; Menge U ; BelegNummer EB ; Position EB ; Menge EB ; BelegNummer EWE ; LieferMenge EWE ; Open Quantity ;Receipt Status
+
+Calculate : Open Quantity = Menge EB - LieferMenge EWE
+
+Receipt Status rule
+If no EWE exists
+    -> Not received
+If LieferMenge EWE = 0
+    -> Not received
+If LieferMenge EWE < Menge EB
+    -> Partially received
+If LieferMenge EWE >= Menge EB
+    -> Fully received
+*/
+
+
+/* Nack Test Vert & Eink */
+
+define stream stest.
+
+define variable cDocNoEB      as character no-undo.
+define variable cDocNoEWE     as character no-undo.
+define variable dOpenQuantity as decimal   no-undo.
+define variable cReceipt      as character no-undo.
+
+output stream stest to 'D:/Work/Result2.csv'.
+put stream stest unformatted 'BelegNummer U;Position U;Artikel;Menge U;BelegNummer EB;Position EB;Menge EB;BelegNummer EWE;LieferMenge EWE;Open Quantity;Receipt Status':U skip.
+
+/* loop check doc Auftrag */
+for each V_BelegKopf
+  where V_BelegKopf.Firma    = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+    and V_BelegKopf.BelegArt = 'U':U
+  no-lock:
+
+  /* loop check position */
+  for each V_BelegPos
+    where V_BelegPos.Firma      = {firma/vbelegko.fir pACConnectionSvc:prpcCompany}
+      and V_BelegPos.BelegArt   = V_BelegKopf.BelegArt
+      and V_BelegPos.ReferenzNr = V_BelegKopf.ReferenzNr
+      and V_BelegPos.LfdNr_SR   = 0
+    no-lock:
+    
+    /* check Bestellung link to Auftrag */
+    find first E_BelegPos
+      where E_BelegPos.Firma               = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+        and E_BelegPos.BelegArt            = 'EB':U
+        and E_BelegPos.Coverage_MRPDocType = V_BelegPos.BelegArt
+        and E_BelegPos.Coverage_Obj        = V_BelegPos.V_BelegPos_Obj
+      no-lock no-error.
+
+    /* check BelegNummer EB */
+    if available E_BelegPos then
+    do:
+      find E_BelegKopf
+          where E_BelegKopf.Firma       = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+            and E_BelegKopf.BelegArt    = E_BelegPos.BelegArt
+            and E_BelegKopf.ReferenzNr  = E_BelegPos.ReferenzNr
+          no-lock no-error.
+
+      if available E_BelegKopf then
+      assign
+        cDocNoEB = string(E_BelegKopf.BelegNummer)
+        .
+        
+      /* check EWE link to EB */
+      find E_WE_Pos
+        where E_WE_Pos.Firma             = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+          and E_WE_Pos.Herk_Belegart     = E_BelegPos.BelegArt
+          and E_WE_Pos.Herk_ReferenzNr   = E_BelegPos.ReferenzNr
+          and E_WE_Pos.Herk_PositionsNr  = E_BelegPos.PositionsNr
+        no-lock no-error.
+
+      if available E_WE_Pos then
+      do:
+        find E_WE_Kopf
+          where E_WE_Kopf.Firma       = {firma/ebelkop.fir pACConnectionSvc:prpcCompany}
+            and E_WE_Kopf.ReferenzNr  = E_WE_Pos.ReferenzNr
+          no-lock no-error.
+
+        if available E_WE_Kopf then
+          assign
+            cDocNoEWE     = string(E_WE_Kopf.BelegNummer)
+            dOpenQuantity = E_BelegPos.Menge - E_WE_Pos.LieferMenge
+            .
+
+        /* check Receipt Status rule */
+        if E_WE_Pos.LieferMenge = 0 then
+        do:
+          cReceipt = 'Not received'.
+        end. /* if E_WE_Pos.LieferMenge = 0 */
+
+        else if E_WE_Pos.LieferMenge < E_BelegPos.Menge then
+        do:
+          cReceipt = 'Partially received'.
+        end. /* else if E_WE_Pos.LieferMenge < E_BelegPos.Menge */
+
+        else if E_WE_Pos.LieferMenge >= E_BelegPos.Menge then
+        do:
+          cReceipt = 'Fully received'.
+        end. /* else if E_WE_Pos.LieferMenge >= E_BelegPos.Menge */
+
+        put stream stest unformatted
+          V_BelegKopf.BelegNummer  ";":U
+          V_BelegPos.PositionsNr   ";":U
+          V_BelegPos.Artikel       ";":U
+          V_BelegPos.Menge         ";":U
+          cDocNoEB                 ";":U
+          E_BelegPos.PositionsNr   ";":U
+          E_BelegPos.Menge         ";":U
+          cDocNoEWE                ";":U
+          E_WE_Pos.LieferMenge     ";":U
+          dOpenQuantity            ";":U
+          cReceipt                 skip
+          .
+
+      end. /* if available E_WE_Pos */
+
+      /* check EWE not link to EB */
+      else if not available E_WE_Pos then
+      do:
+        assign
+          dOpenQuantity = E_BelegPos.Menge - 0
+          cReceipt      = 'Not received'
+          .
+
+        put stream stest unformatted
+          V_BelegKopf.BelegNummer  ";":U
+          V_BelegPos.PositionsNr   ";":U
+          V_BelegPos.Artikel       ";":U
+          V_BelegPos.Menge         ";":U
+          cDocNoEB                 ";":U
+          E_BelegPos.PositionsNr   ";":U
+          E_BelegPos.Menge         ";":U
+          '-'                      ";":U
+          '-'                      ";":U
+          dOpenQuantity            ";":U
+          cReceipt                 skip
+          .
+
+      end. /* else if not available E_WE_Pos */
+
+    end. /* if available E_BelegPos */
+
+  end. /* for each V_BelegPos */
+
+end. /* for each V_BelegKopf */
+
+output stream stest close.

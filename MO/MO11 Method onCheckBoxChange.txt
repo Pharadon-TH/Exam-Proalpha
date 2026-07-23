@@ -1,0 +1,283 @@
+method public void onCheckBoxChange
+    (  ):
+    /* Description -----------------------------------------------------------*/
+    /*                                                                        */
+    /* onCheckBoxChange                                                       */
+    /*                                                                        */
+    /* Parameters ------------------------------------------------------------*/
+    /*                                                                        */
+    /* <none>                                                                 */
+    /*                                                                        */
+    /*------------------------------------------------------------------------*/
+    
+    /* --> MO#DIETZ-SFL-0010 thongdi_p 29/06/2026 VÄnderung Kundensonderpreise */    
+/*    if goxKundensonderpreise:cGetScreenValue() = 'no':U then                      */
+/*    do:                                                                           */
+/*      /* Save custom field values */                                              */
+/*      if valid-object(goKundemin) then                                            */
+/*        gcBak_Kundemin = goKundemin:cGetScreenValue().                            */
+/*                                                                                  */
+/*      if valid-object(goKundemax) then                                            */
+/*        gcBak_Kundemax = goKundemax:cGetScreenValue().                            */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_alt_var) then                                  */
+/*        gcBak_Gueltig_ab_alt_var = goGueltig_ab_alt_var:cGetScreenValue().        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_neu_var) then                                  */
+/*        gcBak_Gueltig_ab_neu_var = goGueltig_ab_neu_var:cGetScreenValue().        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_bis_neu_var) then                                 */
+/*        gcBak_Gueltig_bis_neu_var = goGueltig_bis_neu_var:cGetScreenValue().      */
+/*                                                                                  */
+/*      /* Disable and clear custom fields */                                       */
+/*      if valid-object(goKundemin) then                                            */
+/*      do:                                                                         */
+/*        goKundemin:setScreenValue('':U).                                          */
+/*        goKundemin:setEnabled(no).                                                */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goKundemax) then                                            */
+/*      do:                                                                         */
+/*        goKundemax:setScreenValue('':U).                                          */
+/*        goKundemax:setEnabled(no).                                                */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_alt_var) then                                  */
+/*      do:                                                                         */
+/*        goGueltig_ab_alt_var:setScreenValue('':U).                                */
+/*        goGueltig_ab_alt_var:setEnabled(no).                                      */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_neu_var) then                                  */
+/*      do:                                                                         */
+/*        goGueltig_ab_neu_var:setScreenValue('':U).                                */
+/*        goGueltig_ab_neu_var:setEnabled(no).                                      */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_bis_neu_var) then                                 */
+/*      do:                                                                         */
+/*        goGueltig_bis_neu_var:setScreenValue('':U).                               */
+/*        goGueltig_bis_neu_var:setEnabled(no).                                     */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      /* Clear custom info fields */                                              */
+/*      if valid-object(goGueltig_ab_alt_info) then                                 */
+/*        goGueltig_ab_alt_info:setScreenValue('':U).                               */
+/*      if valid-object(goGueltig_ab_neu_info) then                                 */
+/*        goGueltig_ab_neu_info:setScreenValue('':U).                               */
+/*      if valid-object(goGueltig_bis_neu_info) then                                */
+/*        goGueltig_bis_neu_info:setScreenValue('':U).                              */
+/*                                                                                  */
+/*      /* Restore standard fields */                                               */
+/*      if valid-object(goPreisgruppe_alt) then                                     */
+/*      do:                                                                         */
+/*        goPreisgruppe_alt:setScreenValue(gcBak_Preisgruppe_alt).                  */
+/*        goPreisgruppe_alt:setEnabled(yes).                                        */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goPreisgruppe_neu) then                                     */
+/*      do:                                                                         */
+/*        goPreisgruppe_neu:setScreenValue(gcBak_Preisgruppe_neu).                  */
+/*        goPreisgruppe_neu:setEnabled(yes).                                        */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_alt) then                                      */
+/*      do:                                                                         */
+/*        goGueltig_ab_alt:setScreenValue(gcBak_Gueltig_ab_alt).                    */
+/*        goGueltig_ab_alt:setEnabled(yes).                                         */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_neu) then                                      */
+/*      do:                                                                         */
+/*        goGueltig_ab_neu:setScreenValue(gcBak_Gueltig_ab_neu).                    */
+/*        goGueltig_ab_neu:setEnabled(yes).                                         */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_bis_neu) then                                     */
+/*      do:                                                                         */
+/*        goGueltig_bis_neu:setScreenValue(gcBak_Gueltig_bis_neu).                  */
+/*        goGueltig_bis_neu:setEnabled(yes).                                        */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      /* Restore standard info fields */                                          */
+/*      if valid-object(goPreisgruppe_alt_info) then                                */
+/*      do:                                                                         */
+/*        goPreisgruppe_alt_info:setScreenValue(gcBak_Preisgruppe_alt_info).        */
+/*        goPreisgruppe_alt_info:setEnabled(yes).                                   */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goPreisgruppe_neu_info) then                                */
+/*      do:                                                                         */
+/*        goPreisgruppe_neu_info:setScreenValue(gcBak_Preisgruppe_neu_info).        */
+/*        goPreisgruppe_neu_info:setEnabled(yes).                                   */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_alt_info_std) then                             */
+/*      do:                                                                         */
+/*        goGueltig_ab_alt_info_std:setScreenValue(gcBak_Gueltig_ab_alt_info).      */
+/*        goGueltig_ab_alt_info_std:setEnabled(yes).                                */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_neu_info_std) then                             */
+/*      do:                                                                         */
+/*        goGueltig_ab_neu_info_std:setScreenValue(gcBak_Gueltig_ab_neu_info).      */
+/*        goGueltig_ab_neu_info_std:setEnabled(yes).                                */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_bis_neu_info_std) then                            */
+/*      do:                                                                         */
+/*        goGueltig_bis_neu_info_std:setScreenValue(gcBak_Gueltig_bis_neu_info).    */
+/*        goGueltig_bis_neu_info_std:setEnabled(yes).                               */
+/*      end.                                                                        */
+/*                                                                                  */
+/*    end. /* if goxKundensonderpreise:cGetScreenValue() = 'no' */                  */
+/*                                                                                  */
+/*    else if goxKundensonderpreise:cGetScreenValue() = 'yes':U then                */
+/*    do:                                                                           */
+/*      /* Save standard field values */                                            */
+/*      if valid-object(goPreisgruppe_alt) then                                     */
+/*        gcBak_Preisgruppe_alt = goPreisgruppe_alt:cGetScreenValue().              */
+/*                                                                                  */
+/*      if valid-object(goPreisgruppe_neu) then                                     */
+/*        gcBak_Preisgruppe_neu = goPreisgruppe_neu:cGetScreenValue().              */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_alt) then                                      */
+/*        gcBak_Gueltig_ab_alt = goGueltig_ab_alt:cGetScreenValue().                */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_neu) then                                      */
+/*        gcBak_Gueltig_ab_neu = goGueltig_ab_neu:cGetScreenValue().                */
+/*                                                                                  */
+/*      if valid-object(goGueltig_bis_neu) then                                     */
+/*        gcBak_Gueltig_bis_neu = goGueltig_bis_neu:cGetScreenValue().              */
+/*                                                                                  */
+/*      /* Save standard info field values */                                       */
+/*      if valid-object(goPreisgruppe_alt_info) then                                */
+/*        gcBak_Preisgruppe_alt_info = goPreisgruppe_alt_info:cGetScreenValue().    */
+/*                                                                                  */
+/*      if valid-object(goPreisgruppe_neu_info) then                                */
+/*        gcBak_Preisgruppe_neu_info = goPreisgruppe_neu_info:cGetScreenValue().    */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_alt_info_std) then                             */
+/*        gcBak_Gueltig_ab_alt_info = goGueltig_ab_alt_info_std:cGetScreenValue().  */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_neu_info_std) then                             */
+/*        gcBak_Gueltig_ab_neu_info = goGueltig_ab_neu_info_std:cGetScreenValue().  */
+/*                                                                                  */
+/*      if valid-object(goGueltig_bis_neu_info_std) then                            */
+/*        gcBak_Gueltig_bis_neu_info = goGueltig_bis_neu_info_std:cGetScreenValue().*/
+/*                                                                                  */
+/*      /* Disable and clear standard fields */                                     */
+/*      if valid-object(goPreisgruppe_alt) then                                     */
+/*      do:                                                                         */
+/*        goPreisgruppe_alt:setScreenValue('':U).                                   */
+/*        goPreisgruppe_alt:setEnabled(no).                                         */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goPreisgruppe_neu) then                                     */
+/*      do:                                                                         */
+/*        goPreisgruppe_neu:setScreenValue('':U).                                   */
+/*        goPreisgruppe_neu:setEnabled(no).                                         */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_alt) then                                      */
+/*      do:                                                                         */
+/*        goGueltig_ab_alt:setScreenValue('':U).                                    */
+/*        goGueltig_ab_alt:setEnabled(no).                                          */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_neu) then                                      */
+/*      do:                                                                         */
+/*        goGueltig_ab_neu:setScreenValue('':U).                                    */
+/*        goGueltig_ab_neu:setEnabled(no).                                          */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_bis_neu) then                                     */
+/*      do:                                                                         */
+/*        goGueltig_bis_neu:setScreenValue('':U).                                   */
+/*        goGueltig_bis_neu:setEnabled(no).                                         */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      /* Disable and clear standard info fields */                                */
+/*      if valid-object(goPreisgruppe_alt_info) then                                */
+/*      do:                                                                         */
+/*        goPreisgruppe_alt_info:setScreenValue('':U).                              */
+/*        goPreisgruppe_alt_info:setEnabled(no).                                    */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goPreisgruppe_neu_info) then                                */
+/*      do:                                                                         */
+/*        goPreisgruppe_neu_info:setScreenValue('':U).                              */
+/*        goPreisgruppe_neu_info:setEnabled(no).                                    */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_alt_info_std) then                             */
+/*      do:                                                                         */
+/*        goGueltig_ab_alt_info_std:setScreenValue('':U).                           */
+/*        goGueltig_ab_alt_info_std:setEnabled(no).                                 */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_neu_info_std) then                             */
+/*      do:                                                                         */
+/*        goGueltig_ab_neu_info_std:setScreenValue('':U).                           */
+/*        goGueltig_ab_neu_info_std:setEnabled(no).                                 */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_bis_neu_info_std) then                            */
+/*      do:                                                                         */
+/*        goGueltig_bis_neu_info_std:setScreenValue('':U).                          */
+/*        goGueltig_bis_neu_info_std:setEnabled(no).                                */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      /* Restore custom fields */                                                 */
+/*      if valid-object(goKundemin) then                                            */
+/*      do:                                                                         */
+/*        goKundemin:setScreenValue(gcBak_Kundemin).                                */
+/*        goKundemin:setEnabled(yes).                                               */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goKundemax) then                                            */
+/*      do:                                                                         */
+/*        goKundemax:setScreenValue(gcBak_Kundemax).                                */
+/*        goKundemax:setEnabled(yes).                                               */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_alt_var) then                                  */
+/*      do:                                                                         */
+/*        goGueltig_ab_alt_var:setScreenValue(gcBak_Gueltig_ab_alt_var).            */
+/*        goGueltig_ab_alt_var:setEnabled(yes).                                     */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_ab_neu_var) then                                  */
+/*      do:                                                                         */
+/*        goGueltig_ab_neu_var:setScreenValue(gcBak_Gueltig_ab_neu_var).            */
+/*        goGueltig_ab_neu_var:setEnabled(yes).                                     */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      if valid-object(goGueltig_bis_neu_var) then                                 */
+/*      do:                                                                         */
+/*        goGueltig_bis_neu_var:setScreenValue(gcBak_Gueltig_bis_neu_var).          */
+/*        goGueltig_bis_neu_var:setEnabled(yes).                                    */
+/*      end.                                                                        */
+/*                                                                                  */
+/*      /* Update custom weekday info */                                            */
+/*      this-object:onLeave_ab_alt().                                               */
+/*      this-object:onLeave_ab_neu().                                               */
+/*      this-object:onLeave_bis_neu().                                              */
+    
+/*    end. /* else if goxKundensonderpreise:cGetScreenValue() = 'yes' */*/
+    if goxKundensonderpreise:cGetScreenValue() = 'no':U then
+    do:
+      this-object:saveCustomFields().
+      this-object:disableCustomFields().
+      this-object:restoreStandardFields().
+    end.
+    
+    else if goxKundensonderpreise:cGetScreenValue() = 'yes':U then
+    do:
+      this-object:saveStandardFields().
+      this-object:disableStandardFields().
+      this-object:restoreCustomFields().
+    end.
+    /* <-- MO#DIETZ-SFL-0010 thongdi_p 29/06/2026 VÄnderung Kundensonderpreise */ 
+    
+  end method.

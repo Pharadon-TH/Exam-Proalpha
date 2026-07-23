@@ -1,0 +1,6 @@
+DDO : Dataset definition object -> Define use entity and relation | structure of dataset
+DAO : Dataset Access Object  -> Fill Data for Entity
+BEO : Business Entity Object -> ?
+Proxy			     -> ?
+
+Relation Type : 1) 1:1 = dri  2) 1:N = dr
